@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arizona Boundaries Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { height: 100vh; width: 100%; }
+        .leaflet-popup-content { max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize map centered on Arizona
+        const map = L.map('map').setView([34.05, -112.09], 7);
+
+        // Base map (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Layer groups
+        const countyLayer = L.layerGroup().addTo(map);
+        const cityLayer = L.layerGroup().addTo(map);
+        const tribalLayer = L.layerGroup().addTo(map);
+
+        // Arizona Counties from public GeoJSON
+        fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json')
+            .then(response => response.json())
+            .then(data => {
+                const azCounties = {
+                    type: "FeatureCollection",
+                    features: data.features.filter(f => f.properties.STATE === "04")
+                };
+
+                L.geoJSON(azCounties, {
+                    style: { color: "#3388ff", weight: 3, fillOpacity: 0.15 },
+                    onEachFeature: (feature, layer) => {
+                        if (feature.properties.NAME) {
+                            layer.bindPopup(`<b>${feature.properties.NAME} County</b><br>State: Arizona`);
+                        }
+                    }
+                }).addTo(countyLayer);
+            })
+            .catch(err => console.error('Error loading counties:', err));
+
+        // Layer control
+        const overlayMaps = {
+            "Counties": countyLayer,
+            "Cities & Towns": cityLayer,
+            "Tribal Reservations": tribalLayer
+        };
+        L.control.layers(null, overlayMaps, { collapsed: false }).addTo(map);
+
+        // Welcome popup
+        setTimeout(() => {
+            L.popup()
+                .setLatLng([34.05, -112.09])
+                .setContent('<h3>Welcome to Arizona Boundaries Map!</h3><p>Toggle layers on the right.<br>Add your own GeoJSON files next.</p>')
+                .openOn(map);
+        }, 1500);
+
+        console.log("✅ Arizona map initialized!");
+    </script>
+</body>
+</html>
