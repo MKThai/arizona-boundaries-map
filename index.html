@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arizona Boundaries Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         #map { height: 100vh; width: calc(100% - 300px); margin-left: 300px; }
@@ -23,21 +24,6 @@
             box-sizing: border-box;
         }
         
-        #sidebar h2 {
-            margin: 0 0 12px 0;
-            font-size: 18px;
-            color: #333;
-        }
-        
-        #citySearch {
-            width: 100%;
-            padding: 8px 12px;
-            margin-bottom: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        
         .city-item {
             padding: 10px 12px;
             margin-bottom: 6px;
@@ -52,230 +38,294 @@
             border-color: #3388ff;
         }
         
-        .city-name {
-            font-weight: 600;
-            color: #222;
-            font-size: 14px;
+        .modal {
+            animation: fadeIn 0.2s ease;
         }
         
-        .city-meta {
-            font-size: 12px;
-            color: #666;
-            margin-top: 2px;
+        .dem { background-color: #3b82f6; color: white; }
+        .rep { background-color: #ef4444; color: white; }
+        
+        .bar-container {
+            height: 24px;
+            background: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin: 8px 0;
         }
         
-        .city-pop {
-            color: #3388ff;
-            font-weight: 500;
-        }
-        
-        .leaflet-popup-content {
-            max-height: 300px;
-            overflow-y: auto;
+        .bar {
+            height: 100%;
+            transition: width 0.4s ease;
         }
     </style>
 </head>
 <body>
     <!-- Sidebar -->
     <div id="sidebar">
-        <h2>🏙️ Arizona Cities</h2>
-        <input type="text" id="citySearch" placeholder="Search cities or counties...">
+        <h2 class="text-xl font-bold mb-3">🏙️ Arizona Cities</h2>
+        <input type="text" id="citySearch" class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3" placeholder="Search cities or counties...">
         <div id="cityList"></div>
     </div>
 
     <!-- Map -->
     <div id="map"></div>
 
+    <!-- Political Snapshot Button -->
+    <button onclick="showPoliticalModal()" 
+            class="fixed top-4 right-4 z-[1001] bg-white shadow-lg border border-gray-200 hover:bg-blue-50 px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium">
+        <span>📊</span> 
+        <span>Political Snapshot</span>
+    </button>
+
+    <!-- Political Modal -->
+    <div id="politicalModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden modal">
+            <!-- Header -->
+            <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Arizona Political Snapshot</h2>
+                    <p class="text-sm text-gray-500">May 2026 • Current elected officials</p>
+                </div>
+                <button onclick="hidePoliticalModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex border-b bg-white px-2">
+                <button onclick="switchTab(0)" class="tab-btn active px-5 py-3 font-medium text-sm border-b-2 border-blue-600 text-blue-600">Executive</button>
+                <button onclick="switchTab(1)" class="tab-btn px-5 py-3 font-medium text-sm text-gray-600 hover:text-gray-900">Legislature</button>
+                <button onclick="switchTab(2)" class="tab-btn px-5 py-3 font-medium text-sm text-gray-600 hover:text-gray-900">Federal</button>
+                <button onclick="switchTab(3)" class="tab-btn px-5 py-3 font-medium text-sm text-gray-600 hover:text-gray-900">2026 Outlook</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6 overflow-y-auto" style="max-height: 65vh;">
+                
+                <!-- Executive Tab -->
+                <div id="tab-0" class="tab-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white border rounded-xl p-4">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                                <span class="font-semibold">Democratic</span>
+                            </div>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between"><span>Governor</span> <span class="font-medium">Katie Hobbs</span></div>
+                                <div class="flex justify-between"><span>Secretary of State</span> <span class="font-medium">Adrian Fontes</span></div>
+                                <div class="flex justify-between"><span>Attorney General</span> <span class="font-medium">Kris Mayes</span></div>
+                            </div>
+                        </div>
+                        <div class="bg-white border rounded-xl p-4">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                <span class="font-semibold">Republican</span>
+                            </div>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between"><span>Treasurer</span> <span class="font-medium">Kimberly Yee</span></div>
+                                <div class="flex justify-between"><span>Supt. of Public Instruction</span> <span class="font-medium">Tom Horne</span></div>
+                                <div class="flex justify-between"><span>Mine Inspector</span> <span class="font-medium">Les Presmyk</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <strong>Note:</strong> The new Lieutenant Governor position will be elected for the first time in November 2026 and takes office January 2027.
+                    </div>
+                </div>
+
+                <!-- Legislature Tab -->
+                <div id="tab-1" class="tab-content hidden">
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium">State Senate (30 seats)</span>
+                                <span class="font-mono text-xs">17R – 13D</span>
+                            </div>
+                            <div class="bar-container"><div class="bar bg-red-500" style="width: 56.7%"></div></div>
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>Republican majority</span> <span>President: Warren Petersen (R)</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium">House of Representatives (60 seats)</span>
+                                <span class="font-mono text-xs">33R – 27D</span>
+                            </div>
+                            <div class="bar-container"><div class="bar bg-red-500" style="width: 55%"></div></div>
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>Republican majority</span> <span>Speaker: Steve Montenegro (R)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-xs bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        Republicans have controlled both chambers for over a decade. This creates frequent tension with the Democratic Governor.
+                    </div>
+                </div>
+
+                <!-- Federal Tab -->
+                <div id="tab-2" class="tab-content hidden">
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-semibold text-sm mb-2">U.S. Senators</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between items-center bg-gray-50 p-2 rounded"><span>Mark Kelly (D)</span> <span class="text-xs text-gray-500">Senior • Re-elected 2022</span></div>
+                                <div class="flex justify-between items-center bg-gray-50 p-2 rounded"><span>Ruben Gallego (D)</span> <span class="text-xs text-gray-500">Junior • Elected 2024</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-sm mb-2">U.S. House (9 districts)</h4>
+                            <div class="text-sm bg-gray-50 p-3 rounded">
+                                Republicans currently hold a majority of Arizona's congressional seats.<br>
+                                <a href="https://ballotpedia.org/United_States_House_of_Representatives_elections_in_Arizona,_2026" target="_blank" class="text-blue-600 text-xs">View district map & candidates →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2026 Outlook Tab -->
+                <div id="tab-3" class="tab-content hidden">
+                    <div class="prose prose-sm">
+                        <p class="font-medium">2026 is a major election year for Arizona:</p>
+                        <ul class="text-sm space-y-1 mt-3">
+                            <li>✓ Governor + new Lieutenant Governor (joint ticket)</li>
+                            <li>✓ Secretary of State, Attorney General, Treasurer, Supt. of Public Instruction, Mine Inspector</li>
+                            <li>✓ Full Legislature (all 90 seats)</li>
+                            <li>✓ 3 U.S. House seats up (including open seats)</li>
+                        </ul>
+                        <div class="mt-4 text-xs text-gray-500">
+                            Primary: July 21, 2026 &nbsp;•&nbsp; General: November 3, 2026
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 py-3 border-t bg-gray-50 flex justify-end gap-3">
+                <a href="https://az.gov/elected-officials" target="_blank" class="text-xs px-3 py-1.5 text-gray-600 hover:text-gray-900">Official AZ.gov →</a>
+                <a href="https://www.azleg.gov/" target="_blank" class="text-xs px-3 py-1.5 text-gray-600 hover:text-gray-900">azleg.gov →</a>
+                <button onclick="hidePoliticalModal()" class="px-4 py-1.5 text-sm bg-gray-900 text-white rounded-lg">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        // Initialize map centered on Arizona
-        const map = L.map('map').setView([34.05, -112.09], 7);
+        // Tailwind script
+        function initTailwind() {
+            document.documentElement.style.setProperty('--accent', '#3388ff');
+        }
+        initTailwind();
 
-        // Base map (OpenStreetMap)
+        // Initialize map
+        const map = L.map('map').setView([34.05, -112.09], 7);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors',
-            maxZoom: 19
+            attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
         }).addTo(map);
 
-        // Layer groups
         const countyLayer = L.layerGroup().addTo(map);
         const cityLayer = L.layerGroup().addTo(map);
         const tribalLayer = L.layerGroup().addTo(map);
 
-        // Store cities for sidebar
         let allCities = [];
 
-        // === COUNTIES ===
+        // COUNTIES
         fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json')
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
-                const azCounties = {
-                    type: "FeatureCollection",
-                    features: data.features.filter(f => f.properties.STATE === "04")
-                };
-
-                L.geoJSON(azCounties, {
-                    style: { color: "#3388ff", weight: 3, fillOpacity: 0.15 },
-                    onEachFeature: (feature, layer) => {
-                        if (feature.properties.NAME) {
-                            const name = feature.properties.NAME;
-                            const area = Number(feature.properties.CENSUSAREA || 0);
-                            layer.bindPopup(`<b>${name} County</b><br>Area: ${Math.round(area).toLocaleString()} sq mi`);
+                const az = { type: "FeatureCollection", features: data.features.filter(f => f.properties.STATE === "04") };
+                L.geoJSON(az, {
+                    style: { color: "#3388ff", weight: 3, fillOpacity: 0.12 },
+                    onEachFeature: (f, layer) => {
+                        if (f.properties.NAME) {
+                            const area = Number(f.properties.CENSUSAREA || 0);
+                            layer.bindPopup(`<b>${f.properties.NAME} County</b><br>Area: ${Math.round(area).toLocaleString()} sq mi`);
                         }
                     }
                 }).addTo(countyLayer);
-            })
-            .catch(err => console.error('Error loading counties:', err));
+            });
 
-        // === CITIES & TOWNS (Dynamic from GeoNames) ===
-        const geonamesUsername = 'luuthai'; // <-- CHANGE THIS to your GeoNames username
-
-        fetch(`https://api.geonames.org/searchJSON?country=US&adminCode1=AZ&featureClass=P&maxRows=1000&username=${geonamesUsername}`)
-            .then(response => response.json())
+        // CITIES from GeoNames
+        const username = 'luuthai';
+        fetch(`https://api.geonames.org/searchJSON?country=US&adminCode1=AZ&featureClass=P&maxRows=1000&username=${username}`)
+            .then(r => r.json())
             .then(data => {
-                if (data.geonames && data.geonames.length > 0) {
+                if (data.geonames) {
                     allCities = data.geonames;
-                    
-                    // Create markers
-                    data.geonames.forEach(place => {
-                        const marker = L.circleMarker([place.lat, place.lng], {
-                            radius: 6,
-                            fillColor: "#ff6600",
-                            color: "#fff",
-                            weight: 1.5,
-                            opacity: 1,
-                            fillOpacity: 0.85
-                        }).bindPopup(`
-                            <b>${place.name}</b><br>
-                            ${place.adminName2 ? place.adminName2 + ', ' : ''}AZ<br>
-                            Population: <strong>${place.population ? place.population.toLocaleString() : 'N/A'}</strong><br>
-                            <small>GeoNames ID: ${place.geonameId}</small>
-                        `);
-                        marker.addTo(cityLayer);
+                    data.geonames.forEach(p => {
+                        const m = L.circleMarker([p.lat, p.lng], {
+                            radius: 5.5, fillColor: "#ff6600", color: "#fff", weight: 1.2, fillOpacity: 0.9
+                        }).bindPopup(`<b>${p.name}</b><br>${p.adminName2 || 'AZ'} • Pop: <strong>${p.population ? p.population.toLocaleString() : 'N/A'}</strong>`);
+                        m.addTo(cityLayer);
                     });
-                    
-                    // Build sidebar list
                     renderCityList(allCities);
-                    
-                    console.log(`✅ Loaded ${data.geonames.length} cities from GeoNames`);
-                } else {
-                    console.error('No cities found', data);
                 }
-            })
-            .catch(err => {
-                console.error('Error loading cities from GeoNames:', err);
-                // Fallback
-                const fallback = [
-                    {name: "Phoenix", lat: 33.4484, lng: -112.0740, population: 4787790, adminName2: "Maricopa"},
-                    {name: "Tucson", lat: 32.2226, lng: -110.9747, population: 1093761, adminName2: "Pima"},
-                    {name: "Mesa", lat: 33.4152, lng: -111.8315, population: 515000, adminName2: "Maricopa"}
-                ];
-                allCities = fallback;
-                fallback.forEach(city => {
-                    L.circleMarker([city.lat, city.lng], {
-                        radius: 6, fillColor: "#ff6600", color: "#fff", weight: 1.5, fillOpacity: 0.85
-                    }).bindPopup(`<b>${city.name}</b><br><small>(Fallback)</small>`).addTo(cityLayer);
-                });
+            }).catch(() => {
+                const fb = [{name:"Phoenix",lat:33.4484,lng:-112.0740,population:4787790,adminName2:"Maricopa"}];
+                allCities = fb;
+                fb.forEach(c => L.circleMarker([c.lat,c.lng],{radius:6,fillColor:"#ff6600",color:"#fff",weight:1.5,fillOpacity:0.9}).bindPopup(c.name).addTo(cityLayer));
                 renderCityList(allCities);
             });
 
-        // Render city list in sidebar
         function renderCityList(cities) {
-            const container = document.getElementById('cityList');
-            container.innerHTML = '';
-            
-            cities.forEach(place => {
-                const div = document.createElement('div');
-                div.className = 'city-item';
-                
-                const pop = place.population ? place.population.toLocaleString() : 'N/A';
-                const county = place.adminName2 || 'Arizona';
-                
-                div.innerHTML = `
-                    <div class="city-name">${place.name}</div>
-                    <div class="city-meta">
-                        ${county} • <span class="city-pop">${pop}</span>
-                    </div>
-                `;
-                
-                // Click to zoom + open popup
-                div.addEventListener('click', () => {
-                    map.flyTo([place.lat, place.lng], 11, { duration: 1.2 });
-                    
-                    // Open popup at location
-                    setTimeout(() => {
-                        L.popup()
-                            .setLatLng([place.lat, place.lng])
-                            .setContent(`
-                                <b>${place.name}</b><br>
-                                ${place.adminName2 ? place.adminName2 + ', ' : ''}AZ<br>
-                                Population: <strong>${pop}</strong><br>
-                                <small>GeoNames ID: ${place.geonameId}</small>
-                            `)
-                            .openOn(map);
-                    }, 800);
-                });
-                
-                container.appendChild(div);
+            const c = document.getElementById('cityList');
+            c.innerHTML = '';
+            cities.forEach(p => {
+                const d = document.createElement('div');
+                d.className = 'city-item';
+                const pop = p.population ? p.population.toLocaleString() : 'N/A';
+                d.innerHTML = `<div class="city-name">${p.name}</div><div class="city-meta">${p.adminName2 || 'AZ'} • <span class="city-pop">${pop}</span></div>`;
+                d.onclick = () => {
+                    map.flyTo([p.lat, p.lng], 11, {duration: 1.1});
+                    setTimeout(() => L.popup().setLatLng([p.lat, p.lng]).setContent(`<b>${p.name}</b><br>${p.adminName2 || 'AZ'} • ${pop}`).openOn(map), 700);
+                };
+                c.appendChild(d);
             });
         }
 
-        // Search / Filter
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('citySearch');
-            if (searchInput) {
-                searchInput.addEventListener('input', (e) => {
-                    const term = e.target.value.toLowerCase().trim();
-                    const container = document.getElementById('cityList');
-                    
-                    if (!allCities.length) return;
-                    
-                    const filtered = allCities.filter(place => 
-                        place.name.toLowerCase().includes(term) || 
-                        (place.adminName2 && place.adminName2.toLowerCase().includes(term))
-                    );
-                    
-                    container.innerHTML = '';
-                    
-                    filtered.forEach(place => {
-                        const div = document.createElement('div');
-                        div.className = 'city-item';
-                        const pop = place.population ? place.population.toLocaleString() : 'N/A';
-                        const county = place.adminName2 || 'Arizona';
-                        
-                        div.innerHTML = `
-                            <div class="city-name">${place.name}</div>
-                            <div class="city-meta">
-                                ${county} • <span class="city-pop">${pop}</span>
-                            </div>
-                        `;
-                        
-                        div.addEventListener('click', () => {
-                            map.flyTo([place.lat, place.lng], 11, { duration: 1.2 });
-                            setTimeout(() => {
-                                L.popup()
-                                    .setLatLng([place.lat, place.lng])
-                                    .setContent(`<b>${place.name}</b><br>${county} • Pop: <strong>${pop}</strong>`)
-                                    .openOn(map);
-                            }, 800);
-                        });
-                        
-                        container.appendChild(div);
-                    });
-                });
-            }
+        // Search
+        document.getElementById('citySearch').addEventListener('input', e => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allCities.filter(p => p.name.toLowerCase().includes(term) || (p.adminName2 && p.adminName2.toLowerCase().includes(term)));
+            const c = document.getElementById('cityList');
+            c.innerHTML = '';
+            filtered.forEach(p => {
+                const d = document.createElement('div');
+                d.className = 'city-item';
+                const pop = p.population ? p.population.toLocaleString() : 'N/A';
+                d.innerHTML = `<div class="city-name">${p.name}</div><div class="city-meta">${p.adminName2 || 'AZ'} • <span class="city-pop">${pop}</span></div>`;
+                d.onclick = () => { map.flyTo([p.lat, p.lng], 11, {duration:1.1}); setTimeout(() => L.popup().setLatLng([p.lat,p.lng]).setContent(`<b>${p.name}</b>`).openOn(map), 700); };
+                c.appendChild(d);
+            });
         });
 
+        // Political Modal functions
+        let currentTab = 0;
+        function showPoliticalModal() {
+            document.getElementById('politicalModal').classList.remove('hidden');
+            document.getElementById('politicalModal').classList.add('flex');
+            switchTab(0);
+        }
+        function hidePoliticalModal() {
+            document.getElementById('politicalModal').classList.add('hidden');
+            document.getElementById('politicalModal').classList.remove('flex');
+        }
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach((el, i) => el.classList.toggle('hidden', i !== tab));
+            document.querySelectorAll('.tab-btn').forEach((el, i) => {
+                el.classList.toggle('active', i === tab);
+                el.classList.toggle('border-b-2', i === tab);
+                el.classList.toggle('border-blue-600', i === tab);
+                el.classList.toggle('text-blue-600', i === tab);
+                if (i !== tab) el.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600');
+            });
+        }
+
         // Layer control
-        const overlayMaps = {
+        L.control.layers(null, {
             "Counties": countyLayer,
             "Cities & Towns": cityLayer,
             "Tribal Reservations": tribalLayer
-        };
-        L.control.layers(null, overlayMaps, { collapsed: false }).addTo(map);
+        }, { collapsed: false }).addTo(map);
 
-        console.log("✅ Arizona map with sidebar and dynamic GeoNames cities!");
+        console.log("✅ Full Arizona map with Political Snapshot ready!");
     </script>
 </body>
 </html>
