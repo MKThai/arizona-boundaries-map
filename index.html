@@ -222,7 +222,6 @@
 
         const countyLayer = L.layerGroup().addTo(map);
         const cityLayer = L.layerGroup().addTo(map);
-        const tribalLayer = L.layerGroup().addTo(map);
 
         let allCities = [];
 
@@ -322,7 +321,6 @@
         L.control.layers(null, {
             "Counties": countyLayer,
             "Cities & Towns": cityLayer,
-            "Tribal Reservations": tribalLayer
         }, { collapsed: false }).addTo(map);
 
         console.log("✅ Full Arizona map with centered Political Snapshot button!");
