@@ -53,39 +53,51 @@
             })
             .catch(err => console.error('Error loading counties:', err));
 
-        // === CITIES & TOWNS ===
-        const majorCities = [
-            {name: "Phoenix", lat: 33.4484, lng: -112.0740, pop: 4787790},
-            {name: "Tucson", lat: 32.2226, lng: -110.9747, pop: 1093761},
-            {name: "Mesa", lat: 33.4152, lng: -111.8315, pop: 515000},
-            {name: "Chandler", lat: 33.3062, lng: -111.8413, pop: 280000},
-            {name: "Scottsdale", lat: 33.4942, lng: -111.9261, pop: 245000},
-            {name: "Gilbert", lat: 33.3528, lng: -111.7890, pop: 275000},
-            {name: "Glendale", lat: 33.5387, lng: -112.1859, pop: 250000},
-            {name: "Tempe", lat: 33.4255, lng: -111.9400, pop: 200000},
-            {name: "Peoria", lat: 33.5809, lng: -112.2374, pop: 195000},
-            {name: "Surprise", lat: 33.6306, lng: -112.3332, pop: 155000},
-            {name: "Yuma", lat: 32.6927, lng: -114.6277, pop: 222125},
-            {name: "Flagstaff", lat: 35.1983, lng: -111.6513, pop: 149453},
-            {name: "Prescott", lat: 34.5400, lng: -112.4685, pop: 253595},
-            {name: "Buckeye", lat: 33.3703, lng: -112.5838, pop: 119317},
-            {name: "Lake Havasu City", lat: 34.4839, lng: -114.3225, pop: 58000},
-            {name: "Casa Grande", lat: 32.8795, lng: -111.7570, pop: 69405},
-            {name: "Sierra Vista", lat: 31.5455, lng: -110.2773, pop: 45838},
-            {name: "Kingman", lat: 35.1894, lng: -114.0530, pop: 36080}
-        ];
+        // === CITIES & TOWNS (Dynamic from GeoNames) ===
+        // To use: Sign up for free at https://www.geonames.org/ (get a username)
+        // Replace 'demo' below with your username for production use.
+        // Free limit: ~10,000 requests/day. This fetches ~1000+ populated places in AZ.
+        const geonamesUsername = 'demo'; // <-- CHANGE THIS to your GeoNames username
 
-        majorCities.forEach(city => {
-            const marker = L.circleMarker([city.lat, city.lng], {
-                radius: 8,
-                fillColor: "#ff6600",
-                color: "#fff",
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.9
-            }).bindPopup(`<b>${city.name}</b><br>Population: <strong>${city.pop.toLocaleString()}</strong> (2025 est.)`);
-            marker.addTo(cityLayer);
-        });
+        fetch(`https://api.geonames.org/searchJSON?country=US&adminCode1=AZ&featureClass=P&maxRows=1000&username=${geonamesUsername}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.geonames) {
+                    data.geonames.forEach(place => {
+                        const marker = L.circleMarker([place.lat, place.lng], {
+                            radius: 6,
+                            fillColor: "#ff6600",
+                            color: "#fff",
+                            weight: 1.5,
+                            opacity: 1,
+                            fillOpacity: 0.85
+                        }).bindPopup(`
+                            <b>${place.name}</b><br>
+                            ${place.adminName2 ? place.adminName2 + ', ' : ''}AZ<br>
+                            Population: <strong>${place.population ? place.population.toLocaleString() : 'N/A'}</strong><br>
+                            <small>GeoNames ID: ${place.geonameId}</small>
+                        `);
+                        marker.addTo(cityLayer);
+                    });
+                    console.log(`✅ Loaded ${data.geonames.length} cities from GeoNames`);
+                } else {
+                    console.error('No cities found in GeoNames response', data);
+                }
+            })
+            .catch(err => {
+                console.error('Error loading cities from GeoNames:', err);
+                // Fallback to a few major cities if API fails
+                const fallbackCities = [
+                    {name: "Phoenix", lat: 33.4484, lng: -112.0740},
+                    {name: "Tucson", lat: 32.2226, lng: -110.9747},
+                    {name: "Mesa", lat: 33.4152, lng: -111.8315}
+                ];
+                fallbackCities.forEach(city => {
+                    L.circleMarker([city.lat, city.lng], {
+                        radius: 6, fillColor: "#ff6600", color: "#fff", weight: 1.5, fillOpacity: 0.85
+                    }).bindPopup(`<b>${city.name}</b><br><small>(Fallback - GeoNames unavailable)</small>`).addTo(cityLayer);
+                });
+            });
 
         // Layer control
         const overlayMaps = {
@@ -95,7 +107,7 @@
         };
         L.control.layers(null, overlayMaps, { collapsed: false }).addTo(map);
 
-        console.log("✅ Arizona map with cities loaded!");
+        console.log("✅ Arizona map initialized with dynamic GeoNames cities!");
     </script>
 </body>
 </html>
