@@ -57,7 +57,7 @@
         // To use: Sign up for free at https://www.geonames.org/ (get a username)
         // Replace 'demo' below with your username for production use.
         // Free limit: ~10,000 requests/day. This fetches ~1000+ populated places in AZ.
-        const geonamesUsername = 'demo'; // <-- CHANGE THIS to your GeoNames username
+        const geonamesUsername = 'luuthai'; // <-- CHANGE THIS to your GeoNames username
 
         fetch(`https://api.geonames.org/searchJSON?country=US&adminCode1=AZ&featureClass=P&maxRows=1000&username=${geonamesUsername}`)
             .then(response => response.json())
