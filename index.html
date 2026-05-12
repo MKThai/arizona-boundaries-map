@@ -32,6 +32,8 @@
         const tribalLayer = L.layerGroup().addTo(map);
 
         // Arizona Counties from public GeoJSON
+        // availabe properties
+        // CENSUSAREA, COUNTY, GEO_ID, LSAD, NAME, STATE
         fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json')
             .then(response => response.json())
             .then(data => {
@@ -44,7 +46,10 @@
                     style: { color: "#3388ff", weight: 3, fillOpacity: 0.15 },
                     onEachFeature: (feature, layer) => {
                         if (feature.properties.NAME) {
-                            layer.bindPopup(`<b>${feature.properties.NAME} County</b><br>State: Arizona`);
+                            const raw = feature.properties.CENSUSAREA;
+                            const num = Number(raw);
+                            const censusFormatted = Math.round(num).toLocaleString();
+                            layer.bindPopup(`<b>${feature.properties.NAME} ${feature.properties.LSAD}</b><br>Pop: <b>${censusFormatted}</b>`);
                         }
                     }
                 }).addTo(countyLayer);
