@@ -6,12 +6,84 @@
     <title>Arizona Boundaries Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { margin: 0; padding: 0; }
-        #map { height: 100vh; width: 100%; }
-        .leaflet-popup-content { max-height: 300px; overflow-y: auto; }
+        body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        #map { height: 100vh; width: calc(100% - 300px); margin-left: 300px; }
+        
+        #sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 100vh;
+            background: #fff;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+        
+        #sidebar h2 {
+            margin: 0 0 12px 0;
+            font-size: 18px;
+            color: #333;
+        }
+        
+        #citySearch {
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .city-item {
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            border: 1px solid #eee;
+        }
+        
+        .city-item:hover {
+            background: #f0f7ff;
+            border-color: #3388ff;
+        }
+        
+        .city-name {
+            font-weight: 600;
+            color: #222;
+            font-size: 14px;
+        }
+        
+        .city-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        .city-pop {
+            color: #3388ff;
+            font-weight: 500;
+        }
+        
+        .leaflet-popup-content {
+            max-height: 300px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <h2>🏙️ Arizona Cities</h2>
+        <input type="text" id="citySearch" placeholder="Search cities or counties...">
+        <div id="cityList"></div>
+    </div>
+
+    <!-- Map -->
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -30,6 +102,9 @@
         const countyLayer = L.layerGroup().addTo(map);
         const cityLayer = L.layerGroup().addTo(map);
         const tribalLayer = L.layerGroup().addTo(map);
+
+        // Store cities for sidebar
+        let allCities = [];
 
         // === COUNTIES ===
         fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json')
@@ -54,15 +129,15 @@
             .catch(err => console.error('Error loading counties:', err));
 
         // === CITIES & TOWNS (Dynamic from GeoNames) ===
-        // To use: Sign up for free at https://www.geonames.org/ (get a username)
-        // Replace 'demo' below with your username for production use.
-        // Free limit: ~10,000 requests/day. This fetches ~1000+ populated places in AZ.
         const geonamesUsername = 'luuthai'; // <-- CHANGE THIS to your GeoNames username
 
         fetch(`https://api.geonames.org/searchJSON?country=US&adminCode1=AZ&featureClass=P&maxRows=1000&username=${geonamesUsername}`)
             .then(response => response.json())
             .then(data => {
-                if (data.geonames) {
+                if (data.geonames && data.geonames.length > 0) {
+                    allCities = data.geonames;
+                    
+                    // Create markers
                     data.geonames.forEach(place => {
                         const marker = L.circleMarker([place.lat, place.lng], {
                             radius: 6,
@@ -79,25 +154,118 @@
                         `);
                         marker.addTo(cityLayer);
                     });
+                    
+                    // Build sidebar list
+                    renderCityList(allCities);
+                    
                     console.log(`✅ Loaded ${data.geonames.length} cities from GeoNames`);
                 } else {
-                    console.error('No cities found in GeoNames response', data);
+                    console.error('No cities found', data);
                 }
             })
             .catch(err => {
                 console.error('Error loading cities from GeoNames:', err);
-                // Fallback to a few major cities if API fails
-                const fallbackCities = [
-                    {name: "Phoenix", lat: 33.4484, lng: -112.0740},
-                    {name: "Tucson", lat: 32.2226, lng: -110.9747},
-                    {name: "Mesa", lat: 33.4152, lng: -111.8315}
+                // Fallback
+                const fallback = [
+                    {name: "Phoenix", lat: 33.4484, lng: -112.0740, population: 4787790, adminName2: "Maricopa"},
+                    {name: "Tucson", lat: 32.2226, lng: -110.9747, population: 1093761, adminName2: "Pima"},
+                    {name: "Mesa", lat: 33.4152, lng: -111.8315, population: 515000, adminName2: "Maricopa"}
                 ];
-                fallbackCities.forEach(city => {
+                allCities = fallback;
+                fallback.forEach(city => {
                     L.circleMarker([city.lat, city.lng], {
                         radius: 6, fillColor: "#ff6600", color: "#fff", weight: 1.5, fillOpacity: 0.85
-                    }).bindPopup(`<b>${city.name}</b><br><small>(Fallback - GeoNames unavailable)</small>`).addTo(cityLayer);
+                    }).bindPopup(`<b>${city.name}</b><br><small>(Fallback)</small>`).addTo(cityLayer);
                 });
+                renderCityList(allCities);
             });
+
+        // Render city list in sidebar
+        function renderCityList(cities) {
+            const container = document.getElementById('cityList');
+            container.innerHTML = '';
+            
+            cities.forEach(place => {
+                const div = document.createElement('div');
+                div.className = 'city-item';
+                
+                const pop = place.population ? place.population.toLocaleString() : 'N/A';
+                const county = place.adminName2 || 'Arizona';
+                
+                div.innerHTML = `
+                    <div class="city-name">${place.name}</div>
+                    <div class="city-meta">
+                        ${county} • <span class="city-pop">${pop}</span>
+                    </div>
+                `;
+                
+                // Click to zoom + open popup
+                div.addEventListener('click', () => {
+                    map.flyTo([place.lat, place.lng], 11, { duration: 1.2 });
+                    
+                    // Open popup at location
+                    setTimeout(() => {
+                        L.popup()
+                            .setLatLng([place.lat, place.lng])
+                            .setContent(`
+                                <b>${place.name}</b><br>
+                                ${place.adminName2 ? place.adminName2 + ', ' : ''}AZ<br>
+                                Population: <strong>${pop}</strong><br>
+                                <small>GeoNames ID: ${place.geonameId}</small>
+                            `)
+                            .openOn(map);
+                    }, 800);
+                });
+                
+                container.appendChild(div);
+            });
+        }
+
+        // Search / Filter
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('citySearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase().trim();
+                    const container = document.getElementById('cityList');
+                    
+                    if (!allCities.length) return;
+                    
+                    const filtered = allCities.filter(place => 
+                        place.name.toLowerCase().includes(term) || 
+                        (place.adminName2 && place.adminName2.toLowerCase().includes(term))
+                    );
+                    
+                    container.innerHTML = '';
+                    
+                    filtered.forEach(place => {
+                        const div = document.createElement('div');
+                        div.className = 'city-item';
+                        const pop = place.population ? place.population.toLocaleString() : 'N/A';
+                        const county = place.adminName2 || 'Arizona';
+                        
+                        div.innerHTML = `
+                            <div class="city-name">${place.name}</div>
+                            <div class="city-meta">
+                                ${county} • <span class="city-pop">${pop}</span>
+                            </div>
+                        `;
+                        
+                        div.addEventListener('click', () => {
+                            map.flyTo([place.lat, place.lng], 11, { duration: 1.2 });
+                            setTimeout(() => {
+                                L.popup()
+                                    .setLatLng([place.lat, place.lng])
+                                    .setContent(`<b>${place.name}</b><br>${county} • Pop: <strong>${pop}</strong>`)
+                                    .openOn(map);
+                            }, 800);
+                        });
+                        
+                        container.appendChild(div);
+                    });
+                });
+            }
+        });
 
         // Layer control
         const overlayMaps = {
@@ -107,7 +275,7 @@
         };
         L.control.layers(null, overlayMaps, { collapsed: false }).addTo(map);
 
-        console.log("✅ Arizona map initialized with dynamic GeoNames cities!");
+        console.log("✅ Arizona map with sidebar and dynamic GeoNames cities!");
     </script>
 </body>
 </html>
