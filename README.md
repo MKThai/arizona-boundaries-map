@@ -8,10 +8,11 @@ Built with **Leaflet.js** — lightweight, free, and mobile-friendly.
 [https://MKThai.github.io/arizona-boundaries-map/](https://MKThai.github.io/arizona-boundaries-map/)
 
 ## Features
+- **Interactive Sidebar** — searchable list of all Arizona cities with population and county
 - Arizona counties with popups
-- **Dynamic Cities & Towns** powered by GeoNames API (pulls 1000+ populated places in Arizona)
+- **Dynamic Cities & Towns** powered by GeoNames API (pulls 1000+ populated places)
 - Toggleable layers
-- Easy to extend with your own GeoJSON data
+- Click any city in the sidebar to fly to it on the map
 
 ## Quick Start
 1. Clone the repo
@@ -20,7 +21,7 @@ Built with **Leaflet.js** — lightweight, free, and mobile-friendly.
    - Sign up for a free account at [https://www.geonames.org/](https://www.geonames.org/)
    - Verify your email
    - Go to your account page and enable web services
-   - Copy your username and replace `'demo'` in `index.html` (line ~45)
+   - Copy your username and replace `'demo'` in `index.html`
 
 ## Adding Data
 See the comments in `index.html` for how to load your own boundary files.
@@ -28,7 +29,6 @@ See the comments in `index.html` for how to load your own boundary files.
 ## Next Steps
 - Tribal Reservations (22 in Arizona)
 - School districts, legislative districts, etc.
-- Search bar, basemap switcher, data popups
 - Add more filters (population > 10k, etc.)
 
 Contributions welcome! Fork, add layers, and submit a PR.
