@@ -57,6 +57,12 @@
             height: 100%;
             transition: width 0.4s ease;
         }
+        
+        .loading {
+            color: #666;
+            font-style: italic;
+            padding: 8px 12px;
+        }
     </style>
 </head>
 <body>
@@ -64,7 +70,7 @@
     <div id="sidebar">
         <h2 class="text-xl font-bold mb-3">🏙️ Arizona Cities</h2>
         <input type="text" id="citySearch" class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3" placeholder="Search cities or counties...">
-        <div id="cityList"></div>
+        <div id="cityList"><div class="loading">Loading cities...</div></div>
     </div>
 
     <!-- Map -->
@@ -208,6 +214,20 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
+        // === CONFIG ===
+        const CONFIG = {
+            geonamesUsername: 'luuthai',
+            mapCenter: [34.05, -112.09],
+            mapZoom: 7,
+            cityMarker: {
+                radius: 5.5,
+                fillColor: '#ff6600',
+                color: '#fff',
+                weight: 1.2,
+                fillOpacity: 0.9
+            }
+        };
+
         // Tailwind script
         function initTailwind() {
             document.documentElement.style.setProperty('--accent', '#3388ff');
@@ -215,7 +235,7 @@
         initTailwind();
 
         // Initialize map
-        const map = L.map('map').setView([34.05, -112.09], 7);
+        const map = L.map('map').setView(CONFIG.mapCenter, CONFIG.mapZoom);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
         }).addTo(map);
@@ -241,58 +261,76 @@
                 }).addTo(countyLayer);
             });
 
-        // CITIES from GeoNames
-        const username = 'luuthai';
-        fetch(`https://api.geonames.org/searchJSON?country=US&adminCode1=AZ&featureClass=P&maxRows=1000&username=${username}`)
+        // CITIES from GeoNames (with loading state)
+        const cityListEl = document.getElementById('cityList');
+        cityListEl.innerHTML = '<div class="loading">Loading cities from GeoNames...</div>';
+
+        fetch(`https://api.geonames.org/searchJSON?country=US&adminCode1=AZ&featureClass=P&maxRows=1000&username=${CONFIG.geonamesUsername}`)
             .then(r => r.json())
             .then(data => {
-                if (data.geonames) {
+                if (data.geonames && data.geonames.length > 0) {
                     allCities = data.geonames;
                     data.geonames.forEach(p => {
-                        const m = L.circleMarker([p.lat, p.lng], {
-                            radius: 5.5, fillColor: "#ff6600", color: "#fff", weight: 1.2, fillOpacity: 0.9
-                        }).bindPopup(`<b>${p.name}</b><br>${p.adminName2 || 'AZ'} • Pop: <strong>${p.population ? p.population.toLocaleString() : 'N/A'}</strong>`);
+                        const m = L.circleMarker([p.lat, p.lng], CONFIG.cityMarker)
+                            .bindPopup(`<b>${p.name}</b><br>${p.adminName2 || 'AZ'} • Pop: <strong>${p.population ? p.population.toLocaleString() : 'N/A'}</strong>`);
                         m.addTo(cityLayer);
                     });
                     renderCityList(allCities);
+                } else {
+                    throw new Error('No cities returned');
                 }
-            }).catch(() => {
-                const fb = [{name:"Phoenix",lat:33.4484,lng:-112.0740,population:4787790,adminName2:"Maricopa"}];
+            })
+            .catch(err => {
+                console.warn('GeoNames API failed, using fallback:', err);
+                const fb = [
+                    {name: "Phoenix", lat: 33.4484, lng: -112.0740, population: 4787790, adminName2: "Maricopa"},
+                    {name: "Tucson",  lat: 32.2226, lng: -110.9747, population: 550000,  adminName2: "Pima"}
+                ];
                 allCities = fb;
-                fb.forEach(c => L.circleMarker([c.lat,c.lng],{radius:6,fillColor:"#ff6600",color:"#fff",weight:1.5,fillOpacity:0.9}).bindPopup(c.name).addTo(cityLayer));
+                fb.forEach(c => {
+                    L.circleMarker([c.lat, c.lng], CONFIG.cityMarker)
+                        .bindPopup(`<b>${c.name}</b><br>${c.adminName2} • Pop: <strong>${c.population.toLocaleString()}</strong>`)
+                        .addTo(cityLayer);
+                });
                 renderCityList(allCities);
             });
+
+        function createCityElement(p) {
+            const d = document.createElement('div');
+            d.className = 'city-item';
+            const pop = p.population ? p.population.toLocaleString() : 'N/A';
+            d.innerHTML = `
+                <div class="city-name">${p.name}</div>
+                <div class="city-meta">${p.adminName2 || 'AZ'} • <span class="city-pop">${pop}</span></div>
+            `;
+            d.onclick = () => {
+                map.flyTo([p.lat, p.lng], 11, { duration: 1.1 });
+                setTimeout(() => {
+                    L.popup()
+                        .setLatLng([p.lat, p.lng])
+                        .setContent(`<b>${p.name}</b><br>${p.adminName2 || 'AZ'} • ${pop}`)
+                        .openOn(map);
+                }, 700);
+            };
+            return d;
+        }
 
         function renderCityList(cities) {
             const c = document.getElementById('cityList');
             c.innerHTML = '';
-            cities.forEach(p => {
-                const d = document.createElement('div');
-                d.className = 'city-item';
-                const pop = p.population ? p.population.toLocaleString() : 'N/A';
-                d.innerHTML = `<div class="city-name">${p.name}</div><div class="city-meta">${p.adminName2 || 'AZ'} • <span class="city-pop">${pop}</span></div>`;
-                d.onclick = () => {
-                    map.flyTo([p.lat, p.lng], 11, {duration: 1.1});
-                    setTimeout(() => L.popup().setLatLng([p.lat, p.lng]).setContent(`<b>${p.name}</b><br>${p.adminName2 || 'AZ'} • ${pop}`).openOn(map), 700);
-                };
-                c.appendChild(d);
-            });
+            cities.forEach(p => c.appendChild(createCityElement(p)));
         }
 
         // Search
         document.getElementById('citySearch').addEventListener('input', e => {
             const term = e.target.value.toLowerCase();
-            const filtered = allCities.filter(p => p.name.toLowerCase().includes(term) || (p.adminName2 && p.adminName2.toLowerCase().includes(term)));
+            const filtered = allCities.filter(p =>
+                p.name.toLowerCase().includes(term) ||
+                (p.adminName2 && p.adminName2.toLowerCase().includes(term))
+            );
             const c = document.getElementById('cityList');
             c.innerHTML = '';
-            filtered.forEach(p => {
-                const d = document.createElement('div');
-                d.className = 'city-item';
-                const pop = p.population ? p.population.toLocaleString() : 'N/A';
-                d.innerHTML = `<div class="city-name">${p.name}</div><div class="city-meta">${p.adminName2 || 'AZ'} • <span class="city-pop">${pop}</span></div>`;
-                d.onclick = () => { map.flyTo([p.lat, p.lng], 11, {duration:1.1}); setTimeout(() => L.popup().setLatLng([p.lat,p.lng]).setContent(`<b>${p.name}</b>`).openOn(map), 700); };
-                c.appendChild(d);
-            });
+            filtered.forEach(p => c.appendChild(createCityElement(p)));
         });
 
         // Political Modal functions
@@ -321,9 +359,11 @@
         L.control.layers(null, {
             "Counties": countyLayer,
             "Cities & Towns": cityLayer,
-        }, { collapsed: false }).addTo(map);
+        }, { collapsed: false, position: 'topright' }).addTo(map);
 
-        console.log("✅ Full Arizona map with centered Political Snapshot button!");
+        map.attributionControl.setPrefix('Arizona Boundaries Map • Leaflet');
+
+        console.log("✅ Full Arizona map with cleanups + loading indicator!");
     </script>
 </body>
 </html>
