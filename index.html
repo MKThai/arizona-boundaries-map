@@ -63,6 +63,15 @@
             font-style: italic;
             padding: 8px 12px;
         }
+        
+        .legislator-item {
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: background 0.1s;
+        }
+        .legislator-item:hover {
+            background: #f8fafc;
+        }
     </style>
 </head>
 <body>
@@ -137,32 +146,53 @@
                     </div>
                 </div>
 
-                <!-- Legislature Tab -->
+                <!-- Legislature Tab (now dynamic) -->
                 <div id="tab-1" class="tab-content hidden">
                     <div class="space-y-6">
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span class="font-medium">State Senate (30 seats)</span>
-                                <span class="font-mono text-xs">17R – 13D</span>
+                        <div id="legislature-loading" class="loading text-center py-4">Loading current legislators from Open States...</div>
+                        
+                        <div id="legislature-content" class="hidden space-y-6">
+                            <!-- State Senate -->
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-semibold text-lg">State Senate</span>
+                                        <span id="senate-count" class="text-sm font-mono text-gray-500">(30)</span>
+                                    </div>
+                                    <span id="senate-party" class="font-mono text-xs px-2 py-0.5 bg-gray-100 rounded"></span>
+                                </div>
+                                <div class="bar-container"><div id="senate-bar" class="bar bg-red-500" style="width: 57%"></div></div>
+                                <div class="flex justify-between text-xs text-gray-500 mb-2">
+                                    <span>Republican majority</span> 
+                                    <span>President: <strong>Warren Petersen (R)</strong></span>
+                                </div>
+                                <div id="senate-list" class="max-h-[220px] overflow-y-auto border border-gray-200 rounded-xl p-1 text-sm bg-white"></div>
                             </div>
-                            <div class="bar-container"><div class="bar bg-red-500" style="width: 56.7%"></div></div>
-                            <div class="flex justify-between text-xs text-gray-500">
-                                <span>Republican majority</span> <span>President: Warren Petersen (R)</span>
+
+                            <!-- House of Representatives -->
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-semibold text-lg">House of Representatives</span>
+                                        <span id="house-count" class="text-sm font-mono text-gray-500">(60)</span>
+                                    </div>
+                                    <span id="house-party" class="font-mono text-xs px-2 py-0.5 bg-gray-100 rounded"></span>
+                                </div>
+                                <div class="bar-container"><div id="house-bar" class="bar bg-red-500" style="width: 55%"></div></div>
+                                <div class="flex justify-between text-xs text-gray-500 mb-2">
+                                    <span>Republican majority</span> 
+                                    <span>Speaker: <strong>Steve Montenegro (R)</strong></span>
+                                </div>
+                                <div id="house-list" class="max-h-[220px] overflow-y-auto border border-gray-200 rounded-xl p-1 text-sm bg-white"></div>
                             </div>
                         </div>
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span class="font-medium">House of Representatives (60 seats)</span>
-                                <span class="font-mono text-xs">33R – 27D</span>
-                            </div>
-                            <div class="bar-container"><div class="bar bg-red-500" style="width: 55%"></div></div>
-                            <div class="flex justify-between text-xs text-gray-500">
-                                <span>Republican majority</span> <span>Speaker: Steve Montenegro (R)</span>
-                            </div>
+                        
+                        <div class="text-[10px] text-gray-400 flex items-center gap-1 pt-2 border-t">
+                            📡 Data from <a href="https://open.pluralpolicy.com/" target="_blank" class="underline hover:text-blue-600">Open States</a> (updated nightly)
+                            <button onclick="refreshLegislators()" class="ml-auto px-2 py-0.5 text-blue-600 hover:bg-blue-50 rounded text-xs flex items-center gap-1">
+                                ↻ Refresh
+                            </button>
                         </div>
-                    </div>
-                    <div class="mt-4 text-xs bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        Republicans have controlled both chambers for over a decade. This creates frequent tension with the Democratic Governor.
                     </div>
                 </div>
 
@@ -244,6 +274,7 @@
         const cityLayer = L.layerGroup().addTo(map);
 
         let allCities = [];
+        let legislators = [];
 
         // COUNTIES
         fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json')
@@ -333,6 +364,130 @@
             filtered.forEach(p => c.appendChild(createCityElement(p)));
         });
 
+        // === NEW: Legislators from Open States CSV ===
+        async function loadLegislators(forceRefresh = false) {
+            const loadingEl = document.getElementById('legislature-loading');
+            const contentEl = document.getElementById('legislature-content');
+            
+            if (legislators.length > 0 && !forceRefresh) {
+                renderLegislature();
+                return;
+            }
+
+            loadingEl.classList.remove('hidden');
+            contentEl.classList.add('hidden');
+
+            try {
+                const response = await fetch('https://data.openstates.org/people/current/az.csv');
+                if (!response.ok) throw new Error('Failed to fetch');
+                
+                const csvText = await response.text();
+                legislators = parseCSV(csvText);
+                
+                loadingEl.classList.add('hidden');
+                contentEl.classList.remove('hidden');
+                renderLegislature();
+            } catch (err) {
+                console.error('Open States fetch failed:', err);
+                loadingEl.innerHTML = '⚠️ Could not load live data. Using cached snapshot.';
+                // Fallback to static display (already in HTML)
+                contentEl.classList.remove('hidden');
+                // Keep the static bars visible as fallback
+            }
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split(/\r?\n/);
+            if (lines.length < 2) return [];
+            
+            const headers = lines[0].split(',').map(h => h.trim());
+            const rows = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                // Simple CSV parser (handles basic quoted fields)
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                for (let char of lines[i]) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current.trim());
+                
+                let obj = {};
+                headers.forEach((header, idx) => {
+                    obj[header] = (values[idx] || '').replace(/^"|"$/g, '');
+                });
+                rows.push(obj);
+            }
+            return rows;
+        }
+
+        function renderLegislature() {
+            if (!legislators.length) return;
+
+            const senators = legislators.filter(l => l.current_chamber === 'upper');
+            const reps = legislators.filter(l => l.current_chamber === 'lower');
+
+            // Senate
+            const senateR = senators.filter(s => s.current_party === 'Republican').length;
+            const senateD = senators.length - senateR;
+            document.getElementById('senate-count').textContent = `(${senators.length})`;
+            document.getElementById('senate-party').innerHTML = `${senateR}R – ${senateD}D`;
+            document.getElementById('senate-bar').style.width = `${(senateR / senators.length * 100).toFixed(1)}%`;
+
+            const senateList = document.getElementById('senate-list');
+            senateList.innerHTML = senators
+                .sort((a, b) => parseInt(a.current_district) - parseInt(b.current_district))
+                .map(s => createLegislatorHTML(s))
+                .join('');
+
+            // House
+            const houseR = reps.filter(r => r.current_party === 'Republican').length;
+            const houseD = reps.length - houseR;
+            document.getElementById('house-count').textContent = `(${reps.length})`;
+            document.getElementById('house-party').innerHTML = `${houseR}R – ${houseD}D`;
+            document.getElementById('house-bar').style.width = `${(houseR / reps.length * 100).toFixed(1)}%`;
+
+            const houseList = document.getElementById('house-list');
+            houseList.innerHTML = reps
+                .sort((a, b) => parseInt(a.current_district) - parseInt(b.current_district))
+                .map(r => createLegislatorHTML(r))
+                .join('');
+        }
+
+        function createLegislatorHTML(leg) {
+            const partyClass = leg.current_party === 'Democratic' 
+                ? 'bg-blue-100 text-blue-700' 
+                : 'bg-red-100 text-red-700';
+            const partyInitial = leg.current_party === 'Democratic' ? 'D' : 'R';
+            
+            return `
+                <div class="legislator-item flex items-center justify-between text-sm">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="font-medium truncate">${leg.name}</span>
+                        <span class="px-1.5 py-px text-[10px] font-semibold rounded ${partyClass}">${partyInitial}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-gray-500 flex-shrink-0">
+                        <span>District ${leg.current_district}</span>
+                        ${leg.image ? `<img src="${leg.image}" class="w-5 h-5 rounded-full object-cover border" onerror="this.style.display='none'">` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function refreshLegislators() {
+            legislators = [];
+            loadLegislators(true);
+        }
+
         // Political Modal functions
         let currentTab = 0;
         function showPoliticalModal() {
@@ -353,6 +508,11 @@
                 el.classList.toggle('text-blue-600', i === tab);
                 if (i !== tab) el.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600');
             });
+            
+            // Load legislators when Legislature tab is opened
+            if (tab === 1) {
+                loadLegislators();
+            }
         }
 
         // Layer control
@@ -363,7 +523,7 @@
 
         map.attributionControl.setPrefix('Arizona Boundaries Map • Leaflet');
 
-        console.log("✅ Full Arizona map with cleanups + loading indicator!");
+        console.log("✅ Full Arizona map with dynamic Open States legislators in Political Snapshot!");
     </script>
 </body>
 </html>
