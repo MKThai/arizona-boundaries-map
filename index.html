@@ -146,7 +146,7 @@
                     </div>
                 </div>
 
-                <!-- Legislature Tab (now dynamic) -->
+                <!-- Legislature Tab (dynamic) -->
                 <div id="tab-1" class="tab-content hidden">
                     <div class="space-y-6">
                         <div id="legislature-loading" class="loading text-center py-4">Loading current legislators from Open States...</div>
@@ -272,11 +272,13 @@
 
         const countyLayer = L.layerGroup().addTo(map);
         const cityLayer = L.layerGroup().addTo(map);
+        const senateDistrictLayer = L.layerGroup();
+        const houseDistrictLayer = L.layerGroup();
 
         let allCities = [];
         let legislators = [];
 
-        // COUNTIES
+        // COUNTIES (existing)
         fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json')
             .then(r => r.json())
             .then(data => {
@@ -292,7 +294,62 @@
                 }).addTo(countyLayer);
             });
 
-        // CITIES from GeoNames (with loading state)
+        // === NEW: Legislative District Boundaries ===
+        // Data sources (current 2022 redistricting, still in effect):
+        // - Official: Arizona Independent Redistricting Commission (Version 17.0)
+        // - US Census TIGER/Line: State Legislative Districts (SLDU = Senate, SLDL = House)
+        //   Download SHP from https://www2.census.gov/geo/tiger/TIGER2025/SLDU/ and SLDL/
+        //   Convert to GeoJSON using mapshaper.org or QGIS, then host the .geojson files
+        //   (or use a public hosted version). Replace the URLs below with your hosted raw GitHub links.
+        
+        // Example placeholders (replace with actual hosted GeoJSON URLs for full functionality):
+        const SENATE_GEOJSON_URL = 'https://raw.githubusercontent.com/MKThai/arizona-boundaries-map/main/data/az_senate_districts.geojson'; // TODO: add this file
+        const HOUSE_GEOJSON_URL = 'https://raw.githubusercontent.com/MKThai/arizona-boundaries-map/main/data/az_house_districts.geojson'; // TODO: add this file
+
+        // Load Senate Districts (purple theme)
+        fetch(SENATE_GEOJSON_URL)
+            .then(r => r.ok ? r.json() : Promise.reject('Senate GeoJSON not found'))
+            .then(data => {
+                L.geoJSON(data, {
+                    style: { color: '#7c3aed', weight: 2, fillOpacity: 0.08 },
+                    onEachFeature: (feature, layer) => {
+                        const dist = feature.properties.DISTRICT || feature.properties.district || 'N/A';
+                        layer.bindPopup(`
+                            <b>State Senate District ${dist}</b><br>
+                            <span class="text-xs">Upper Chamber • 1 Senator per district</span><br>
+                            <a href="#" onclick="showPoliticalModal(); document.querySelectorAll('.tab-btn')[1].click(); return false;" class="text-blue-600 text-xs">View current Senator →</a>
+                        `);
+                    }
+                }).addTo(senateDistrictLayer);
+                console.log('✅ Senate district boundaries loaded');
+            })
+            .catch(err => {
+                console.warn('Senate districts layer skipped (add the GeoJSON file):', err);
+                // Optional: show a note or skip silently
+            });
+
+        // Load House Districts (teal theme)
+        fetch(HOUSE_GEOJSON_URL)
+            .then(r => r.ok ? r.json() : Promise.reject('House GeoJSON not found'))
+            .then(data => {
+                L.geoJSON(data, {
+                    style: { color: '#0d9488', weight: 2, fillOpacity: 0.08 },
+                    onEachFeature: (feature, layer) => {
+                        const dist = feature.properties.DISTRICT || feature.properties.district || 'N/A';
+                        layer.bindPopup(`
+                            <b>House District ${dist}</b><br>
+                            <span class="text-xs">Lower Chamber • 2 Representatives per district</span><br>
+                            <a href="#" onclick="showPoliticalModal(); document.querySelectorAll('.tab-btn')[1].click(); return false;" class="text-blue-600 text-xs">View current Representatives →</a>
+                        `);
+                    }
+                }).addTo(houseDistrictLayer);
+                console.log('✅ House district boundaries loaded');
+            })
+            .catch(err => {
+                console.warn('House districts layer skipped (add the GeoJSON file):', err);
+            });
+
+        // CITIES from GeoNames (existing)
         const cityListEl = document.getElementById('cityList');
         cityListEl.innerHTML = '<div class="loading">Loading cities from GeoNames...</div>';
 
@@ -364,7 +421,7 @@
             filtered.forEach(p => c.appendChild(createCityElement(p)));
         });
 
-        // === NEW: Legislators from Open States CSV ===
+        // === Legislators from Open States CSV (existing) ===
         async function loadLegislators(forceRefresh = false) {
             const loadingEl = document.getElementById('legislature-loading');
             const contentEl = document.getElementById('legislature-content');
@@ -390,9 +447,7 @@
             } catch (err) {
                 console.error('Open States fetch failed:', err);
                 loadingEl.innerHTML = '⚠️ Could not load live data. Using cached snapshot.';
-                // Fallback to static display (already in HTML)
                 contentEl.classList.remove('hidden');
-                // Keep the static bars visible as fallback
             }
         }
 
@@ -405,7 +460,6 @@
             
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
-                // Simple CSV parser (handles basic quoted fields)
                 const values = [];
                 let current = '';
                 let inQuotes = false;
@@ -436,7 +490,6 @@
             const senators = legislators.filter(l => l.current_chamber === 'upper');
             const reps = legislators.filter(l => l.current_chamber === 'lower');
 
-            // Senate
             const senateR = senators.filter(s => s.current_party === 'Republican').length;
             const senateD = senators.length - senateR;
             document.getElementById('senate-count').textContent = `(${senators.length})`;
@@ -449,7 +502,6 @@
                 .map(s => createLegislatorHTML(s))
                 .join('');
 
-            // House
             const houseR = reps.filter(r => r.current_party === 'Republican').length;
             const houseD = reps.length - houseR;
             document.getElementById('house-count').textContent = `(${reps.length})`;
@@ -509,21 +561,22 @@
                 if (i !== tab) el.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600');
             });
             
-            // Load legislators when Legislature tab is opened
             if (tab === 1) {
                 loadLegislators();
             }
         }
 
-        // Layer control
+        // Layer control (updated with new legislative district layers)
         L.control.layers(null, {
             "Counties": countyLayer,
             "Cities & Towns": cityLayer,
+            "Senate Districts": senateDistrictLayer,
+            "House Districts": houseDistrictLayer
         }, { collapsed: false, position: 'topright' }).addTo(map);
 
-        map.attributionControl.setPrefix('Arizona Boundaries Map • Leaflet');
+        map.attributionControl.setPrefix('Arizona Boundaries Map • Leaflet • Legislative districts from AZ Redistricting / US Census TIGER');
 
-        console.log("✅ Full Arizona map with dynamic Open States legislators in Political Snapshot!");
+        console.log("✅ Arizona map with dynamic legislators + legislative district layer placeholders ready!");
     </script>
 </body>
 </html>
