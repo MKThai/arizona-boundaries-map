@@ -274,9 +274,22 @@
         const cityLayer = L.layerGroup().addTo(map);
         const senateDistrictLayer = L.layerGroup();
         const houseDistrictLayer = L.layerGroup();
+        const congressionalDistrictLayer = L.layerGroup();
 
         let allCities = [];
         let legislators = [];
+
+        // Current Arizona U.S. House Representatives (as of May 2026)
+        const congressionalReps = {
+            "1": { name: "David Schweikert", party: "R" },
+            "2": { name: "Eli Crane", party: "R" },
+            "3": { name: "Yassamin Ansari", party: "D" },
+            "4": { name: "Greg Stanton", party: "D" },
+            "5": { name: "Andy Biggs", party: "R" },
+            "6": { name: "Juan Ciscomani", party: "R" },
+            "7": { name: "Adelita Grijalva", party: "D" }
+            // Districts 8 & 9 can be added here as needed
+        };
 
         // COUNTIES (existing)
         fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json')
@@ -294,19 +307,10 @@
                 }).addTo(countyLayer);
             });
 
-        // === NEW: Legislative District Boundaries ===
-        // Data sources (current 2022 redistricting, still in effect):
-        // - Official: Arizona Independent Redistricting Commission (Version 17.0)
-        // - US Census TIGER/Line: State Legislative Districts (SLDU = Senate, SLDL = House)
-        //   Download SHP from https://www2.census.gov/geo/tiger/TIGER2025/SLDU/ and SLDL/
-        //   Convert to GeoJSON using mapshaper.org or QGIS, then host the .geojson files
-        //   (or use a public hosted version). Replace the URLs below with your hosted raw GitHub links.
-        
-        // Example placeholders (replace with actual hosted GeoJSON URLs for full functionality):
-        const SENATE_GEOJSON_URL = 'https://raw.githubusercontent.com/MKThai/arizona-boundaries-map/main/data/az_senate_districts.geojson'; // TODO: add this file
-        const HOUSE_GEOJSON_URL = 'https://raw.githubusercontent.com/MKThai/arizona-boundaries-map/main/data/az_house_districts.geojson'; // TODO: add this file
+        // === Legislative District Boundaries (Senate & House) ===
+        const SENATE_GEOJSON_URL = 'https://raw.githubusercontent.com/MKThai/arizona-boundaries-map/main/data/az_senate_districts.geojson';
+        const HOUSE_GEOJSON_URL = 'https://raw.githubusercontent.com/MKThai/arizona-boundaries-map/main/data/az_house_districts.geojson';
 
-        // Load Senate Districts (purple theme)
         fetch(SENATE_GEOJSON_URL)
             .then(r => r.ok ? r.json() : Promise.reject('Senate GeoJSON not found'))
             .then(data => {
@@ -321,14 +325,9 @@
                         `);
                     }
                 }).addTo(senateDistrictLayer);
-                console.log('✅ Senate district boundaries loaded');
             })
-            .catch(err => {
-                console.warn('Senate districts layer skipped (add the GeoJSON file):', err);
-                // Optional: show a note or skip silently
-            });
+            .catch(err => console.warn('Senate districts layer skipped:', err));
 
-        // Load House Districts (teal theme)
         fetch(HOUSE_GEOJSON_URL)
             .then(r => r.ok ? r.json() : Promise.reject('House GeoJSON not found'))
             .then(data => {
@@ -343,10 +342,38 @@
                         `);
                     }
                 }).addTo(houseDistrictLayer);
-                console.log('✅ House district boundaries loaded');
+            })
+            .catch(err => console.warn('House districts layer skipped:', err));
+
+        // === NEW: U.S. Congressional Districts (Arizona - 9 districts) ===
+        // Data source: US Census TIGER/Line (tl_2025_04_cd119.zip or latest)
+        // Convert SHP to GeoJSON using mapshaper.org, then upload as az_congressional_districts.geojson
+        const CONGRESSIONAL_GEOJSON_URL = 'https://raw.githubusercontent.com/MKThai/arizona-boundaries-map/main/data/az_congressional_districts.geojson';
+
+        fetch(CONGRESSIONAL_GEOJSON_URL)
+            .then(r => r.ok ? r.json() : Promise.reject('Congressional GeoJSON not found'))
+            .then(data => {
+                L.geoJSON(data, {
+                    style: { color: '#f59e0b', weight: 2.5, fillOpacity: 0.1 },
+                    onEachFeature: (feature, layer) => {
+                        let dist = feature.properties.DISTRICT || feature.properties.district || feature.properties.CD118FP || 'N/A';
+                        dist = String(dist).replace(/^0+/, ''); // clean leading zeros
+                        
+                        const repInfo = congressionalReps[dist] || { name: 'TBD', party: '' };
+                        const partyColor = repInfo.party === 'D' ? 'text-blue-600' : 'text-red-600';
+                        
+                        layer.bindPopup(`
+                            <b>Congressional District ${dist}</b><br>
+                            <span class="font-medium">Rep. ${repInfo.name}</span> 
+                            <span class="${partyColor} font-semibold">(${repInfo.party})</span><br>
+                            <span class="text-xs text-gray-500">U.S. House of Representatives</span>
+                        `);
+                    }
+                }).addTo(congressionalDistrictLayer);
+                console.log('✅ Congressional district boundaries loaded');
             })
             .catch(err => {
-                console.warn('House districts layer skipped (add the GeoJSON file):', err);
+                console.warn('Congressional districts layer skipped (add the GeoJSON file):', err);
             });
 
         // CITIES from GeoNames (existing)
@@ -566,17 +593,18 @@
             }
         }
 
-        // Layer control (updated with new legislative district layers)
+        // Layer control (now includes Congressional Districts)
         L.control.layers(null, {
             "Counties": countyLayer,
             "Cities & Towns": cityLayer,
             "Senate Districts": senateDistrictLayer,
-            "House Districts": houseDistrictLayer
+            "House Districts": houseDistrictLayer,
+            "Congressional Districts": congressionalDistrictLayer
         }, { collapsed: false, position: 'topright' }).addTo(map);
 
-        map.attributionControl.setPrefix('Arizona Boundaries Map • Leaflet • Legislative districts from AZ Redistricting / US Census TIGER');
+        map.attributionControl.setPrefix('Arizona Boundaries Map • Leaflet • Districts from AZ Redistricting / US Census TIGER');
 
-        console.log("✅ Arizona map with dynamic legislators + legislative district layer placeholders ready!");
+        console.log("✅ Arizona map with Congressional Districts + live reps ready!");
     </script>
 </body>
 </html>
