@@ -25,231 +25,137 @@
         }
         
         .official-item {
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            border-radius: 10px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.15s ease;
-            border: 1px solid #eee;
+            transition: all 0.1s ease;
+            border: 1px solid #f1f5f9;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         
         .official-item:hover {
-            background: #f0f7ff;
-            border-color: #3388ff;
-            transform: translateX(2px);
+            background: #f8fafc;
+            border-color: #cbd5e1;
         }
         
         .official-photo {
-            width: 48px;
-            height: 48px;
+            width: 42px;
+            height: 42px;
             border-radius: 9999px;
             object-fit: cover;
             border: 2px solid #fff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
             flex-shrink: 0;
         }
         
         .section-header {
-            font-size: 12px;
-            font-weight: 600;
-            color: #374151;
-            margin-top: 16px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            margin-top: 18px;
             margin-bottom: 6px;
             padding-left: 4px;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
         }
         
         .party-badge {
-            font-size: 10px;
-            padding: 1px 7px;
+            font-size: 9px;
+            padding: 0 6px;
             border-radius: 9999px;
-            font-weight: 600;
-        }
-        
-        .modal {
-            animation: fadeIn 0.2s ease;
+            font-weight: 700;
+            line-height: 1.3;
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar - Pivoted to Elected Officials -->
+    <!-- Sidebar -->
     <div id="sidebar">
-        <div class="mb-4">
-            <h2 class="text-xl font-bold flex items-center gap-2">
-                🗳️ <span>Arizona Officials</span>
-            </h2>
-            <p class="text-xs text-gray-500 mt-0.5">Click any to open details</p>
+        <div class="mb-3">
+            <h2 class="text-xl font-bold">🗳️ Arizona Officials</h2>
+            <input type="text" id="officialSearch" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Search name or title...">
         </div>
-        
-        <input type="text" id="officialSearch" 
-               class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3 text-sm" 
-               placeholder="Search officials...">
-        
         <div id="officialList"></div>
     </div>
 
     <!-- Map -->
     <div id="map"></div>
 
-    <!-- Political Snapshot Button -->
-    <button onclick="showPoliticalModal()" 
-            class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[1001] bg-white shadow-xl border border-gray-200 hover:bg-blue-50 px-5 py-2.5 rounded-full flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-700 transition-all active:scale-95">
-        <span class="text-lg">📊</span> 
-        <span>Political Snapshot</span>
+    <button onclick="showPoliticalModal()" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[1001] bg-white shadow-xl border px-5 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+        📊 Political Snapshot
     </button>
 
-    <!-- Political Modal -->
-    <div id="politicalModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden modal">
-            <!-- Header -->
-            <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+    <!-- Modal -->
+    <div id="politicalModal" class="hidden fixed inset-0 bg-black/50 z-[2000] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div class="px-6 py-4 border-b flex justify-between items-center">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Arizona Political Snapshot</h2>
-                    <p class="text-sm text-gray-500">May 2026 • Current elected officials</p>
+                    <h2 class="text-2xl font-bold">Arizona Political Snapshot</h2>
+                    <p class="text-sm text-gray-500">May 2026</p>
                 </div>
-                <button onclick="hidePoliticalModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                <button onclick="hidePoliticalModal()" class="text-3xl leading-none">&times;</button>
             </div>
 
-            <!-- Tabs -->
-            <div class="flex border-b bg-white px-2">
-                <button onclick="switchTab(0)" class="tab-btn active px-5 py-3 font-medium text-sm border-b-2 border-blue-600 text-blue-600">Executive</button>
-                <button onclick="switchTab(1)" class="tab-btn px-5 py-3 font-medium text-sm text-gray-600 hover:text-gray-900">Legislature</button>
-                <button onclick="switchTab(2)" class="tab-btn px-5 py-3 font-medium text-sm text-gray-600 hover:text-gray-900">Federal</button>
-                <button onclick="switchTab(3)" class="tab-btn px-5 py-3 font-medium text-sm text-gray-600 hover:text-gray-900">2026 Outlook</button>
+            <div class="flex border-b px-2">
+                <button onclick="switchTab(0)" class="tab-btn active px-5 py-3 text-sm font-medium border-b-2 border-blue-600 text-blue-600">Executive</button>
+                <button onclick="switchTab(1)" class="tab-btn px-5 py-3 text-sm font-medium">Legislature</button>
+                <button onclick="switchTab(2)" class="tab-btn px-5 py-3 text-sm font-medium">Federal</button>
+                <button onclick="switchTab(3)" class="tab-btn px-5 py-3 text-sm font-medium">2026 Outlook</button>
             </div>
 
-            <!-- Tab Content -->
-            <div class="p-6 overflow-y-auto" style="max-height: 65vh;">
-                
-                <!-- Executive Tab -->
+            <div class="p-6 overflow-y-auto" style="max-height:65vh">
+                <!-- Executive -->
                 <div id="tab-0" class="tab-content">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div class="bg-white border border-gray-200 rounded-2xl p-5 official-card">
-                            <div class="flex items-center gap-3 mb-5">
-                                <div class="w-3.5 h-3.5 rounded-full bg-blue-500"></div>
-                                <span class="font-semibold text-xl tracking-tight">Democratic</span>
-                            </div>
-                            <div class="space-y-5">
-                                <div class="flex items-start gap-4">
-                                    <img src="data/images/katie-hobbs.jpg" alt="Governor Katie Hobbs" loading="lazy" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm">
-                                    <div class="min-w-0 pt-1"><div class="font-semibold text-lg leading-tight">Katie Hobbs</div><div class="text-sm text-gray-600 mt-0.5">Governor</div></div>
-                                </div>
-                                <div class="flex items-start gap-4">
-                                    <img src="data/images/adrian-fontes.jpg" alt="Secretary of State Adrian Fontes" loading="lazy" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm">
-                                    <div class="min-w-0 pt-1"><div class="font-semibold text-lg leading-tight">Adrian Fontes</div><div class="text-sm text-gray-600 mt-0.5">Secretary of State</div></div>
-                                </div>
-                                <div class="flex items-start gap-4">
-                                    <img src="data/images/kris-mayes.jpg" alt="Attorney General Kris Mayes" loading="lazy" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm">
-                                    <div class="min-w-0 pt-1"><div class="font-semibold text-lg leading-tight">Kris Mayes</div><div class="text-sm text-gray-600 mt-0.5">Attorney General</div></div>
-                                </div>
+                        <div class="border rounded-2xl p-5">
+                            <div class="flex items-center gap-2 mb-4"><div class="w-3 h-3 bg-blue-500 rounded-full"></div><span class="font-semibold">Democratic</span></div>
+                            <div class="space-y-4 text-sm">
+                                <div class="flex gap-3"><img src="data/images/katie-hobbs.jpg" class="w-14 h-14 rounded-2xl object-cover" loading="lazy"><div><div class="font-semibold">Katie Hobbs</div><div class="text-gray-600">Governor</div></div></div>
+                                <div class="flex gap-3"><img src="data/images/adrian-fontes.jpg" class="w-14 h-14 rounded-2xl object-cover" loading="lazy"><div><div class="font-semibold">Adrian Fontes</div><div class="text-gray-600">Secretary of State</div></div></div>
+                                <div class="flex gap-3"><img src="data/images/kris-mayes.jpg" class="w-14 h-14 rounded-2xl object-cover" loading="lazy"><div><div class="font-semibold">Kris Mayes</div><div class="text-gray-600">Attorney General</div></div></div>
                             </div>
                         </div>
-                        <div class="bg-white border border-gray-200 rounded-2xl p-5 official-card">
-                            <div class="flex items-center gap-3 mb-5">
-                                <div class="w-3.5 h-3.5 rounded-full bg-red-500"></div>
-                                <span class="font-semibold text-xl tracking-tight">Republican</span>
-                            </div>
-                            <div class="space-y-5">
-                                <div class="flex items-start gap-4">
-                                    <img src="data/images/kimberly-yee.jpg" alt="Treasurer Kimberly Yee" loading="lazy" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm">
-                                    <div class="min-w-0 pt-1"><div class="font-semibold text-lg leading-tight">Kimberly Yee</div><div class="text-sm text-gray-600 mt-0.5">Treasurer</div></div>
-                                </div>
-                                <div class="flex items-start gap-4">
-                                    <img src="data/images/tom-horne.jpg" alt="Superintendent Tom Horne" loading="lazy" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm">
-                                    <div class="min-w-0 pt-1"><div class="font-semibold text-lg leading-tight">Tom Horne</div><div class="text-sm text-gray-600 mt-0.5">Supt. of Public Instruction</div></div>
-                                </div>
-                                <div class="flex items-start gap-4">
-                                    <img src="data/images/les-presmyk.jpg" alt="Mine Inspector Les Presmyk" loading="lazy" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm">
-                                    <div class="min-w-0 pt-1"><div class="font-semibold text-lg leading-tight">Les Presmyk</div><div class="text-sm text-gray-600 mt-0.5">Mine Inspector</div></div>
-                                </div>
+                        <div class="border rounded-2xl p-5">
+                            <div class="flex items-center gap-2 mb-4"><div class="w-3 h-3 bg-red-500 rounded-full"></div><span class="font-semibold">Republican</span></div>
+                            <div class="space-y-4 text-sm">
+                                <div class="flex gap-3"><img src="data/images/kimberly-yee.jpg" class="w-14 h-14 rounded-2xl object-cover" loading="lazy"><div><div class="font-semibold">Kimberly Yee</div><div class="text-gray-600">Treasurer</div></div></div>
+                                <div class="flex gap-3"><img src="data/images/tom-horne.jpg" class="w-14 h-14 rounded-2xl object-cover" loading="lazy"><div><div class="font-semibold">Tom Horne</div><div class="text-gray-600">Supt. of Public Instruction</div></div></div>
+                                <div class="flex gap-3"><img src="data/images/les-presmyk.jpg" class="w-14 h-14 rounded-2xl object-cover" loading="lazy"><div><div class="font-semibold">Les Presmyk</div><div class="text-gray-600">Mine Inspector</div></div></div>
                             </div>
                         </div>
-                    </div>
-                    <div class="mt-4 text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded-xl p-3">
-                        <strong>Note:</strong> The new Lieutenant Governor position will be elected for the first time in November 2026.
                     </div>
                 </div>
 
-                <!-- Legislature Tab -->
+                <!-- Legislature -->
                 <div id="tab-1" class="tab-content hidden">
                     <div class="space-y-6">
-                        <div id="legislature-loading" class="loading text-center py-4">Loading current legislators from Open States...</div>
-                        <div id="legislature-content" class="hidden space-y-6">
-                            <div>
-                                <div class="flex justify-between items-center mb-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-semibold text-lg">State Senate</span>
-                                        <span id="senate-count" class="text-sm font-mono text-gray-500">(30)</span>
-                                    </div>
-                                    <span id="senate-party" class="font-mono text-xs px-2 py-0.5 bg-gray-100 rounded"></span>
-                                </div>
-                                <div class="bar-container"><div id="senate-bar" class="bar bg-red-500" style="width: 57%"></div></div>
-                                <div class="flex justify-between text-xs text-gray-500 mb-2">
-                                    <span>Republican majority</span> <span>President: <strong>Warren Petersen (R)</strong></span>
-                                </div>
-                                <div id="senate-list" class="max-h-[220px] overflow-y-auto border border-gray-200 rounded-xl p-1 text-sm bg-white"></div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between items-center mb-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-semibold text-lg">House of Representatives</span>
-                                        <span id="house-count" class="text-sm font-mono text-gray-500">(60)</span>
-                                    </div>
-                                    <span id="house-party" class="font-mono text-xs px-2 py-0.5 bg-gray-100 rounded"></span>
-                                </div>
-                                <div class="bar-container"><div id="house-bar" class="bar bg-red-500" style="width: 55%"></div></div>
-                                <div class="flex justify-between text-xs text-gray-500 mb-2">
-                                    <span>Republican majority</span> <span>Speaker: <strong>Steve Montenegro (R)</strong></span>
-                                </div>
-                                <div id="house-list" class="max-h-[220px] overflow-y-auto border border-gray-200 rounded-xl p-1 text-sm bg-white"></div>
-                            </div>
+                        <div>
+                            <div class="font-semibold mb-1">State Senate (30)</div>
+                            <div id="senate-list" class="max-h-64 overflow-auto text-sm border rounded-xl p-2"></div>
                         </div>
-                        <div class="text-[10px] text-gray-400 flex items-center gap-1 pt-2 border-t">
-                            📡 Data from <a href="https://open.pluralpolicy.com/" target="_blank" class="underline hover:text-blue-600">Open States</a>
-                            <button onclick="refreshLegislators()" class="ml-auto px-2 py-0.5 text-blue-600 hover:bg-blue-50 rounded text-xs flex items-center gap-1">↻ Refresh</button>
+                        <div>
+                            <div class="font-semibold mb-1">House of Representatives (60)</div>
+                            <div id="house-list" class="max-h-64 overflow-auto text-sm border rounded-xl p-2"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Federal Tab -->
-                <div id="tab-2" class="tab-content hidden">
-                    <div class="space-y-4">
-                        <div>
-                            <h4 class="font-semibold text-sm mb-2">U.S. Senators</h4>
-                            <div class="space-y-2 text-sm">
-                                <div class="flex justify-between items-center bg-gray-50 p-2 rounded"><span>Mark Kelly (D)</span> <span class="text-xs text-gray-500">Senior</span></div>
-                                <div class="flex justify-between items-center bg-gray-50 p-2 rounded"><span>Ruben Gallego (D)</span> <span class="text-xs text-gray-500">Junior</span></div>
-                            </div>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold text-sm mb-2">U.S. House (9 districts)</h4>
-                            <div class="text-sm bg-gray-50 p-3 rounded">Republicans hold a majority of Arizona's congressional seats.</div>
-                        </div>
-                    </div>
+                <!-- Federal -->
+                <div id="tab-2" class="tab-content hidden text-sm">
+                    <div class="mb-4"><strong>U.S. Senators:</strong> Mark Kelly (D), Ruben Gallego (D)</div>
+                    <div>Republicans hold a majority of Arizona’s 9 congressional seats.</div>
                 </div>
 
-                <!-- 2026 Outlook Tab -->
-                <div id="tab-3" class="tab-content hidden">
-                    <div class="prose prose-sm">
-                        <p class="font-medium">2026 is a major election year for Arizona:</p>
-                        <ul class="text-sm space-y-1 mt-3">
-                            <li>✓ Governor + new Lieutenant Governor</li>
-                            <li>✓ Full Legislature (all 90 seats)</li>
-                            <li>✓ 3 U.S. House seats up</li>
-                        </ul>
-                        <div class="mt-4 text-xs text-gray-500">Primary: July 21, 2026 • General: November 3, 2026</div>
-                    </div>
+                <!-- 2026 Outlook -->
+                <div id="tab-3" class="tab-content hidden text-sm">
+                    2026 is a major election year: Governor, Legislature, and several federal seats.
                 </div>
             </div>
 
-            <div class="px-6 py-3 border-t bg-gray-50 flex justify-end gap-3">
-                <a href="https://az.gov/elected-officials" target="_blank" class="text-xs px-3 py-1.5 text-gray-600 hover:text-gray-900">Official AZ.gov →</a>
-                <a href="https://www.azleg.gov/" target="_blank" class="text-xs px-3 py-1.5 text-gray-600 hover:text-gray-900">azleg.gov →</a>
-                <button onclick="hidePoliticalModal()" class="px-4 py-1.5 text-sm bg-gray-900 text-white rounded-lg">Close</button>
+            <div class="px-6 py-3 border-t flex justify-end">
+                <button onclick="hidePoliticalModal()" class="px-4 py-1.5 bg-gray-900 text-white rounded-lg text-sm">Close</button>
             </div>
         </div>
     </div>
@@ -257,143 +163,166 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        const CONFIG = { mapCenter: [34.05, -112.09], mapZoom: 7 };
-
-        function initTailwind() { document.documentElement.style.setProperty('--accent', '#3388ff'); }
-        initTailwind();
-
-        const map = L.map('map').setView(CONFIG.mapCenter, CONFIG.mapZoom);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 }).addTo(map);
+        const map = L.map('map').setView([34.05, -112.09], 7);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
         const countyLayer = L.layerGroup().addTo(map);
-        const senateDistrictLayer = L.layerGroup();
-        const houseDistrictLayer = L.layerGroup();
-        const congressionalDistrictLayer = L.layerGroup();
+        fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json')
+            .then(r => r.json())
+            .then(data => {
+                const az = { type: "FeatureCollection", features: data.features.filter(f => f.properties.STATE === "04") };
+                L.geoJSON(az, { style: { color: "#3388ff", weight: 2.5, fillOpacity: 0.1 } }).addTo(countyLayer);
+            });
 
-        // === OFFICIALS DATA ===
-        const officialsData = [
-            // Executive Branch
-            { name: "Katie Hobbs", title: "Governor", party: "D", image: "data/images/katie-hobbs.jpg", group: "executive" },
-            { name: "Adrian Fontes", title: "Secretary of State", party: "D", image: "data/images/adrian-fontes.jpg", group: "executive" },
-            { name: "Kris Mayes", title: "Attorney General", party: "D", image: "data/images/kris-mayes.jpg", group: "executive" },
-            { name: "Kimberly Yee", title: "Treasurer", party: "R", image: "data/images/kimberly-yee.jpg", group: "executive" },
-            { name: "Tom Horne", title: "Supt. of Public Instruction", party: "R", image: "data/images/tom-horne.jpg", group: "executive" },
-            { name: "Les Presmyk", title: "Mine Inspector", party: "R", image: "data/images/les-presmyk.jpg", group: "executive" },
+        L.control.layers(null, {
+            "Counties": countyLayer,
+            "Senate Districts": L.layerGroup().addTo(map),
+            "House Districts": L.layerGroup().addTo(map),
+            "Congressional Districts": L.layerGroup().addTo(map)
+        }, { collapsed: false, position: 'topright' }).addTo(map);
 
-            // State Legislature - Leadership
-            { name: "Warren Petersen", title: "Senate President", party: "R", image: "https://via.placeholder.com/48x48/e5e7eb/6b7280?text=WP", group: "legislature" },
-            { name: "Steve Montenegro", title: "House Speaker", party: "R", image: "https://via.placeholder.com/48x48/e5e7eb/6b7280?text=SM", group: "legislature" }
+        // === DATA ===
+        let allLegislators = [];
+        const executiveOfficials = [
+            { name: "Katie Hobbs", title: "Governor", party: "D", image: "data/images/katie-hobbs.jpg" },
+            { name: "Adrian Fontes", title: "Secretary of State", party: "D", image: "data/images/adrian-fontes.jpg" },
+            { name: "Kris Mayes", title: "Attorney General", party: "D", image: "data/images/kris-mayes.jpg" },
+            { name: "Kimberly Yee", title: "Treasurer", party: "R", image: "data/images/kimberly-yee.jpg" },
+            { name: "Tom Horne", title: "Supt. of Public Instruction", party: "R", image: "data/images/tom-horne.jpg" },
+            { name: "Les Presmyk", title: "Mine Inspector", party: "R", image: "data/images/les-presmyk.jpg" }
         ];
 
-        function renderOfficialList(filtered = officialsData) {
+        // Fetch full legislator list
+        async function loadAllLegislators() {
+            try {
+                const res = await fetch('https://data.openstates.org/people/current/az.csv');
+                const csv = await res.text();
+                allLegislators = parseCSV(csv);
+                renderOfficialList();
+            } catch (e) {
+                console.warn('Could not load full legislator list');
+            }
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split(/\r?\n/);
+            const headers = lines[0].split(',');
+            return lines.slice(1).map(line => {
+                const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                let obj = {};
+                headers.forEach((h, i) => obj[h.trim()] = (values[i] || '').replace(/"/g, '').trim());
+                return obj;
+            });
+        }
+
+        function renderOfficialList(filteredExec = executiveOfficials, filteredLegs = allLegislators) {
             const container = document.getElementById('officialList');
             container.innerHTML = '';
 
-            // Group officials
-            const executive = filtered.filter(o => o.group === 'executive');
-            const legislature = filtered.filter(o => o.group === 'legislature');
+            // Executive
+            const execHeader = document.createElement('div');
+            execHeader.className = 'section-header';
+            execHeader.textContent = 'EXECUTIVE BRANCH';
+            container.appendChild(execHeader);
 
-            // Executive Header
-            if (executive.length > 0) {
-                const execHeader = document.createElement('div');
-                execHeader.className = 'section-header';
-                execHeader.textContent = 'EXECUTIVE BRANCH';
-                container.appendChild(execHeader);
+            (filteredExec.length ? filteredExec : executiveOfficials).forEach(o => {
+                container.appendChild(createOfficialRow(o));
+            });
 
-                executive.forEach(official => {
-                    container.appendChild(createOfficialElement(official));
-                });
-            }
-
-            // Legislature Header
-            if (legislature.length > 0) {
+            // Legislature
+            if (allLegislators.length > 0) {
                 const legHeader = document.createElement('div');
                 legHeader.className = 'section-header';
                 legHeader.textContent = 'STATE LEGISLATURE';
                 container.appendChild(legHeader);
 
-                legislature.forEach(official => {
-                    container.appendChild(createOfficialElement(official));
+                const senators = allLegislators.filter(l => l.current_chamber === 'upper');
+                const reps = allLegislators.filter(l => l.current_chamber === 'lower');
+
+                const senateHeader = document.createElement('div');
+                senateHeader.className = 'text-[10px] font-bold text-slate-500 px-1 mt-2 mb-1';
+                senateHeader.textContent = `SENATE (${senators.length})`;
+                container.appendChild(senateHeader);
+
+                senators.sort((a,b) => parseInt(a.current_district) - parseInt(b.current_district)).forEach(l => {
+                    container.appendChild(createLegislatorRow(l));
                 });
 
-                // Add summary + link to full list
-                const summary = document.createElement('div');
-                summary.className = 'px-3 py-2 text-xs text-gray-500';
-                summary.innerHTML = `
-                    30 Senators • 60 Representatives<br>
-                    <span class="text-blue-600 hover:underline cursor-pointer" onclick="showPoliticalModal(); setTimeout(() => switchTab(1), 150)">View full Legislature →</span>
-                `;
-                container.appendChild(summary);
+                const houseHeader = document.createElement('div');
+                houseHeader.className = 'text-[10px] font-bold text-slate-500 px-1 mt-3 mb-1';
+                houseHeader.textContent = `HOUSE (${reps.length})`;
+                container.appendChild(houseHeader);
+
+                reps.sort((a,b) => parseInt(a.current_district) - parseInt(b.current_district)).forEach(l => {
+                    container.appendChild(createLegislatorRow(l));
+                });
             }
         }
 
-        function createOfficialElement(official) {
+        function createOfficialRow(o) {
             const div = document.createElement('div');
-            div.className = `official-item ${official.party === 'D' ? 'hover:border-blue-300' : 'hover:border-red-300'}`;
-            
-            const partyColor = official.party === 'D' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700';
-            
+            div.className = 'official-item';
+            const badge = o.party === 'D' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700';
             div.innerHTML = `
-                <img src="${official.image}" alt="${official.name}" class="official-photo" loading="lazy">
+                <img src="${o.image}" class="official-photo" loading="lazy">
                 <div class="flex-1 min-w-0">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="font-semibold text-[15px] leading-tight">${official.name}</span>
-                        <span class="party-badge ${partyColor} flex-shrink-0">${official.party}</span>
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold">${o.name}</span>
+                        <span class="party-badge ${badge}">${o.party}</span>
                     </div>
-                    <div class="text-sm text-gray-600 mt-0.5">${official.title}</div>
+                    <div class="text-xs text-gray-600">${o.title}</div>
                 </div>
             `;
-
             div.onclick = () => showPoliticalModal();
             return div;
         }
 
-        // Search with grouping preserved
-        document.getElementById('officialSearch').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase().trim();
-            const filtered = officialsData.filter(o => 
-                o.name.toLowerCase().includes(term) || o.title.toLowerCase().includes(term)
-            );
-            renderOfficialList(filtered);
+        function createLegislatorRow(l) {
+            const div = document.createElement('div');
+            div.className = 'official-item text-sm';
+            const party = l.current_party === 'Democratic' ? 'D' : 'R';
+            const badge = party === 'D' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700';
+            const photo = l.image || 'https://via.placeholder.com/42x42/e2e8f0/64748b?text=' + l.given_name?.[0];
+            div.innerHTML = `
+                <img src="${photo}" class="official-photo" loading="lazy" onerror="this.style.display='none'">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between">
+                        <span class="font-medium">${l.name}</span>
+                        <span class="party-badge ${badge}">${party}</span>
+                    </div>
+                    <div class="text-xs text-gray-500">District ${l.current_district} • ${l.current_chamber === 'upper' ? 'Senate' : 'House'}</div>
+                </div>
+            `;
+            div.onclick = () => showPoliticalModal();
+            return div;
+        }
+
+        // Search
+        document.getElementById('officialSearch').addEventListener('input', e => {
+            const term = e.target.value.toLowerCase();
+            const filteredExec = executiveOfficials.filter(o => o.name.toLowerCase().includes(term) || o.title.toLowerCase().includes(term));
+            const filteredLegs = allLegislators.filter(l => l.name.toLowerCase().includes(term));
+            renderOfficialList(filteredExec, filteredLegs);
         });
 
+        // Initial load
         renderOfficialList();
+        loadAllLegislators();
 
-        // COUNTIES
-        fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json')
-            .then(r => r.json())
-            .then(data => {
-                const az = { type: "FeatureCollection", features: data.features.filter(f => f.properties.STATE === "04") };
-                L.geoJSON(az, { style: { color: "#3388ff", weight: 3, fillOpacity: 0.12 } }).addTo(countyLayer);
-            });
-
-        L.control.layers(null, {
-            "Counties": countyLayer,
-            "Senate Districts": senateDistrictLayer,
-            "House Districts": houseDistrictLayer,
-            "Congressional Districts": congressionalDistrictLayer
-        }, { collapsed: false, position: 'topright' }).addTo(map);
-
-        map.attributionControl.setPrefix('Arizona Boundaries Map • Leaflet');
-
+        // Modal
         function showPoliticalModal() {
             document.getElementById('politicalModal').classList.remove('hidden');
             document.getElementById('politicalModal').classList.add('flex');
-            switchTab(0);
         }
         function hidePoliticalModal() {
             document.getElementById('politicalModal').classList.add('hidden');
             document.getElementById('politicalModal').classList.remove('flex');
         }
         function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach((el, i) => el.classList.toggle('hidden', i !== tab));
-            document.querySelectorAll('.tab-btn').forEach((el, i) => {
-                el.classList.toggle('active', i === tab); el.classList.toggle('border-b-2', i === tab);
-                el.classList.toggle('border-blue-600', i === tab); el.classList.toggle('text-blue-600', i === tab);
-            });
+            document.querySelectorAll('.tab-content').forEach((el,i) => el.classList.toggle('hidden', i !== tab));
         }
 
-        console.log("✅ Legislature leadership + section headers added to sidebar");
+        console.log("✅ Full legislature list loaded in sidebar");
     </script>
 </body>
 </html>
