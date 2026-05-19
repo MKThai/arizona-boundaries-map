@@ -174,14 +174,40 @@
                 L.geoJSON(az, { style: { color: "#3388ff", weight: 2.5, fillOpacity: 0.1 } }).addTo(countyLayer);
             });
 
+        // === House District Layer ===
+        const houseDistrictLayer = L.layerGroup();
+
+        fetch('data/az_house_districts.json')
+            .then(response => {
+                if (!response.ok) throw new Error('House district file not found');
+                return response.json();
+            })
+            .then(data => {
+                L.geoJSON(data, {
+                    style: {
+                        color: '#0d9488',
+                        weight: 2,
+                        fillOpacity: 0.08
+                    },
+                    onEachFeature: (feature, layer) => {
+                        const distNum = feature.properties.DISTRICT || feature.properties.district || feature.properties.DIST || 'N/A';
+                        layer.bindPopup(`<b>House District ${distNum}</b><br><span class="text-xs">Arizona State House of Representatives</span>`);
+                    }
+                }).addTo(houseDistrictLayer);
+                console.log('✅ House district layer loaded from data/az_house_districts.json');
+            })
+            .catch(err => {
+                console.warn('House district layer not loaded:', err.message);
+            });
+
         L.control.layers(null, {
             "Counties": countyLayer,
-            "Senate Districts": L.layerGroup().addTo(map),
-            "House Districts": L.layerGroup().addTo(map),
-            "Congressional Districts": L.layerGroup().addTo(map)
+            "House Districts": houseDistrictLayer
         }, { collapsed: false, position: 'topright' }).addTo(map);
 
-        // === DATA ===
+        map.attributionControl.setPrefix('Arizona Boundaries Map • Leaflet');
+
+        // Sidebar + Legislators logic (kept from previous)
         let allLegislators = [];
         const executiveOfficials = [
             { name: "Katie Hobbs", title: "Governor", party: "D", image: "data/images/katie-hobbs.jpg" },
@@ -192,7 +218,6 @@
             { name: "Les Presmyk", title: "Mine Inspector", party: "R", image: "data/images/les-presmyk.jpg" }
         ];
 
-        // Fetch full legislator list
         async function loadAllLegislators() {
             try {
                 const res = await fetch('https://data.openstates.org/people/current/az.csv');
@@ -219,7 +244,6 @@
             const container = document.getElementById('officialList');
             container.innerHTML = '';
 
-            // Executive
             const execHeader = document.createElement('div');
             execHeader.className = 'section-header';
             execHeader.textContent = 'EXECUTIVE BRANCH';
@@ -229,7 +253,6 @@
                 container.appendChild(createOfficialRow(o));
             });
 
-            // Legislature
             if (allLegislators.length > 0) {
                 const legHeader = document.createElement('div');
                 legHeader.className = 'section-header';
@@ -282,7 +305,7 @@
             div.className = 'official-item text-sm';
             const party = l.current_party === 'Democratic' ? 'D' : 'R';
             const badge = party === 'D' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700';
-            const photo = l.image || 'https://via.placeholder.com/42x42/e2e8f0/64748b?text=' + l.given_name?.[0];
+            const photo = l.image || 'https://via.placeholder.com/42x42/e2e8f0/64748b?text=' + (l.given_name ? l.given_name[0] : '');
             div.innerHTML = `
                 <img src="${photo}" class="official-photo" loading="lazy" onerror="this.style.display='none'">
                 <div class="flex-1 min-w-0">
@@ -290,14 +313,13 @@
                         <span class="font-medium">${l.name}</span>
                         <span class="party-badge ${badge}">${party}</span>
                     </div>
-                    <div class="text-xs text-gray-500">District ${l.current_district} • ${l.current_chamber === 'upper' ? 'Senate' : 'House'}</div>
+                    <div class="text-xs text-gray-500">Dist ${l.current_district} • ${l.current_chamber === 'upper' ? 'Senate' : 'House'}</div>
                 </div>
             `;
             div.onclick = () => showPoliticalModal();
             return div;
         }
 
-        // Search
         document.getElementById('officialSearch').addEventListener('input', e => {
             const term = e.target.value.toLowerCase();
             const filteredExec = executiveOfficials.filter(o => o.name.toLowerCase().includes(term) || o.title.toLowerCase().includes(term));
@@ -305,11 +327,9 @@
             renderOfficialList(filteredExec, filteredLegs);
         });
 
-        // Initial load
         renderOfficialList();
         loadAllLegislators();
 
-        // Modal
         function showPoliticalModal() {
             document.getElementById('politicalModal').classList.remove('hidden');
             document.getElementById('politicalModal').classList.add('flex');
@@ -322,7 +342,7 @@
             document.querySelectorAll('.tab-content').forEach((el,i) => el.classList.toggle('hidden', i !== tab));
         }
 
-        console.log("✅ Full legislature list loaded in sidebar");
+        console.log("✅ House district layer updated to use data/az_house_districts.json");
     </script>
 </body>
 </html>
