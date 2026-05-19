@@ -24,68 +24,67 @@
             box-sizing: border-box;
         }
         
-        .city-item {
+        .official-item {
             padding: 10px 12px;
-            margin-bottom: 6px;
-            border-radius: 6px;
+            margin-bottom: 8px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.1s ease;
+            transition: all 0.15s ease;
             border: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
         
-        .city-item:hover {
+        .official-item:hover {
             background: #f0f7ff;
             border-color: #3388ff;
+            transform: translateX(2px);
+        }
+        
+        .official-photo {
+            width: 52px;
+            height: 52px;
+            border-radius: 9999px;
+            object-fit: cover;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        
+        .party-badge {
+            font-size: 10px;
+            padding: 1px 7px;
+            border-radius: 9999px;
+            font-weight: 600;
         }
         
         .modal {
             animation: fadeIn 0.2s ease;
         }
-        
-        .dem { background-color: #3b82f6; color: white; }
-        .rep { background-color: #ef4444; color: white; }
-        
-        .bar-container {
-            height: 24px;
-            background: #e5e7eb;
-            border-radius: 9999px;
-            overflow: hidden;
-            margin: 8px 0;
-        }
-        
-        .bar {
-            height: 100%;
-            transition: width 0.4s ease;
-        }
-        
-        .loading {
-            color: #666;
-            font-style: italic;
-            padding: 8px 12px;
-        }
-        
-        .legislator-item {
-            padding: 6px 10px;
-            border-radius: 6px;
-            transition: background 0.1s;
-        }
-        .legislator-item:hover {
-            background: #f8fafc;
-        }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
+    <!-- Sidebar - Pivoted to Elected Officials -->
     <div id="sidebar">
-        <h2 class="text-xl font-bold mb-3">🏙️ Arizona Cities</h2>
-        <input type="text" id="citySearch" class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3" placeholder="Search cities or counties...">
-        <div id="cityList"><div class="loading">Loading cities...</div></div>
+        <div class="mb-4">
+            <h2 class="text-xl font-bold flex items-center gap-2">
+                🗳️ <span>Arizona Officials</span>
+            </h2>
+            <p class="text-xs text-gray-500 mt-0.5">Click any official to view details</p>
+        </div>
+        
+        <input type="text" id="officialSearch" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3 text-sm" 
+               placeholder="Search by name or title...">
+        
+        <div id="officialList" class="space-y-1"></div>
     </div>
 
     <!-- Map -->
     <div id="map"></div>
 
-    <!-- Political Snapshot Button (Centered Bottom) -->
+    <!-- Political Snapshot Button -->
     <button onclick="showPoliticalModal()" 
             class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[1001] bg-white shadow-xl border border-gray-200 hover:bg-blue-50 px-5 py-2.5 rounded-full flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-700 transition-all active:scale-95">
         <span class="text-lg">📊</span> 
@@ -117,42 +116,83 @@
                 
                 <!-- Executive Tab -->
                 <div id="tab-0" class="tab-content">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-white border rounded-xl p-4">
-                            <div class="flex items-center gap-3 mb-3">
-                                <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-                                <span class="font-semibold">Democratic</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        
+                        <!-- Democratic Officials -->
+                        <div class="bg-white border border-gray-200 rounded-2xl p-5 official-card">
+                            <div class="flex items-center gap-3 mb-5">
+                                <div class="w-3.5 h-3.5 rounded-full bg-blue-500"></div>
+                                <span class="font-semibold text-xl tracking-tight">Democratic</span>
                             </div>
-                            <div class="space-y-3 text-sm">
-                                <div class="flex justify-between"><span>Governor</span> <span class="font-medium">Katie Hobbs</span></div>
-                                <div class="flex justify-between"><span>Secretary of State</span> <span class="font-medium">Adrian Fontes</span></div>
-                                <div class="flex justify-between"><span>Attorney General</span> <span class="font-medium">Kris Mayes</span></div>
+                            
+                            <div class="space-y-5">
+                                <div class="flex items-start gap-4">
+                                    <img src="data/images/katie-hobbs.jpg" alt="Governor Katie Hobbs" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm" onerror="this.src='https://via.placeholder.com/80x80/e5e7eb/6b7280?text=KH'">
+                                    <div class="min-w-0 pt-1">
+                                        <div class="font-semibold text-lg leading-tight">Katie Hobbs</div>
+                                        <div class="text-sm text-gray-600 mt-0.5">Governor</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4">
+                                    <img src="data/images/adrian-fontes.jpg" alt="Secretary of State Adrian Fontes" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm" onerror="this.src='https://via.placeholder.com/80x80/e5e7eb/6b7280?text=AF'">
+                                    <div class="min-w-0 pt-1">
+                                        <div class="font-semibold text-lg leading-tight">Adrian Fontes</div>
+                                        <div class="text-sm text-gray-600 mt-0.5">Secretary of State</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4">
+                                    <img src="data/images/kris-mayes.jpg" alt="Attorney General Kris Mayes" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm" onerror="this.src='https://via.placeholder.com/80x80/e5e7eb/6b7280?text=KM'">
+                                    <div class="min-w-0 pt-1">
+                                        <div class="font-semibold text-lg leading-tight">Kris Mayes</div>
+                                        <div class="text-sm text-gray-600 mt-0.5">Attorney General</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="bg-white border rounded-xl p-4">
-                            <div class="flex items-center gap-3 mb-3">
-                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                                <span class="font-semibold">Republican</span>
+                        
+                        <!-- Republican Officials -->
+                        <div class="bg-white border border-gray-200 rounded-2xl p-5 official-card">
+                            <div class="flex items-center gap-3 mb-5">
+                                <div class="w-3.5 h-3.5 rounded-full bg-red-500"></div>
+                                <span class="font-semibold text-xl tracking-tight">Republican</span>
                             </div>
-                            <div class="space-y-3 text-sm">
-                                <div class="flex justify-between"><span>Treasurer</span> <span class="font-medium">Kimberly Yee</span></div>
-                                <div class="flex justify-between"><span>Supt. of Public Instruction</span> <span class="font-medium">Tom Horne</span></div>
-                                <div class="flex justify-between"><span>Mine Inspector</span> <span class="font-medium">Les Presmyk</span></div>
+                            
+                            <div class="space-y-5">
+                                <div class="flex items-start gap-4">
+                                    <img src="data/images/kimberly-yee.jpg" alt="Treasurer Kimberly Yee" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm" onerror="this.src='https://via.placeholder.com/80x80/e5e7eb/6b7280?text=KY'">
+                                    <div class="min-w-0 pt-1">
+                                        <div class="font-semibold text-lg leading-tight">Kimberly Yee</div>
+                                        <div class="text-sm text-gray-600 mt-0.5">Treasurer</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4">
+                                    <img src="data/images/tom-horne.jpg" alt="Superintendent Tom Horne" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm" onerror="this.src='https://via.placeholder.com/80x80/e5e7eb/6b7280?text=TH'">
+                                    <div class="min-w-0 pt-1">
+                                        <div class="font-semibold text-lg leading-tight">Tom Horne</div>
+                                        <div class="text-sm text-gray-600 mt-0.5">Supt. of Public Instruction</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4">
+                                    <img src="data/images/les-presmyk.jpg" alt="Mine Inspector Les Presmyk" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm" onerror="this.src='https://via.placeholder.com/80x80/e5e7eb/6b7280?text=LP'">
+                                    <div class="min-w-0 pt-1">
+                                        <div class="font-semibold text-lg leading-tight">Les Presmyk</div>
+                                        <div class="text-sm text-gray-600 mt-0.5">Mine Inspector</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="mt-4 text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    
+                    <div class="mt-4 text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded-xl p-3">
                         <strong>Note:</strong> The new Lieutenant Governor position will be elected for the first time in November 2026 and takes office January 2027.
                     </div>
                 </div>
 
-                <!-- Legislature Tab (dynamic) -->
+                <!-- Legislature Tab -->
                 <div id="tab-1" class="tab-content hidden">
                     <div class="space-y-6">
                         <div id="legislature-loading" class="loading text-center py-4">Loading current legislators from Open States...</div>
-                        
                         <div id="legislature-content" class="hidden space-y-6">
-                            <!-- State Senate -->
                             <div>
                                 <div class="flex justify-between items-center mb-1">
                                     <div class="flex items-center gap-2">
@@ -169,7 +209,6 @@
                                 <div id="senate-list" class="max-h-[220px] overflow-y-auto border border-gray-200 rounded-xl p-1 text-sm bg-white"></div>
                             </div>
 
-                            <!-- House of Representatives -->
                             <div>
                                 <div class="flex justify-between items-center mb-1">
                                     <div class="flex items-center gap-2">
@@ -186,12 +225,9 @@
                                 <div id="house-list" class="max-h-[220px] overflow-y-auto border border-gray-200 rounded-xl p-1 text-sm bg-white"></div>
                             </div>
                         </div>
-                        
                         <div class="text-[10px] text-gray-400 flex items-center gap-1 pt-2 border-t">
                             📡 Data from <a href="https://open.pluralpolicy.com/" target="_blank" class="underline hover:text-blue-600">Open States</a> (updated nightly)
-                            <button onclick="refreshLegislators()" class="ml-auto px-2 py-0.5 text-blue-600 hover:bg-blue-50 rounded text-xs flex items-center gap-1">
-                                ↻ Refresh
-                            </button>
+                            <button onclick="refreshLegislators()" class="ml-auto px-2 py-0.5 text-blue-600 hover:bg-blue-50 rounded text-xs flex items-center gap-1">↻ Refresh</button>
                         </div>
                     </div>
                 </div>
@@ -226,9 +262,7 @@
                             <li>✓ Full Legislature (all 90 seats)</li>
                             <li>✓ 3 U.S. House seats up (including open seats)</li>
                         </ul>
-                        <div class="mt-4 text-xs text-gray-500">
-                            Primary: July 21, 2026 &nbsp;•&nbsp; General: November 3, 2026
-                        </div>
+                        <div class="mt-4 text-xs text-gray-500">Primary: July 21, 2026 • General: November 3, 2026</div>
                     </div>
                 </div>
             </div>
@@ -248,17 +282,9 @@
         const CONFIG = {
             geonamesUsername: 'luuthai',
             mapCenter: [34.05, -112.09],
-            mapZoom: 7,
-            cityMarker: {
-                radius: 5.5,
-                fillColor: '#ff6600',
-                color: '#fff',
-                weight: 1.2,
-                fillOpacity: 0.9
-            }
+            mapZoom: 7
         };
 
-        // Tailwind script
         function initTailwind() {
             document.documentElement.style.setProperty('--accent', '#3388ff');
         }
@@ -271,304 +297,93 @@
         }).addTo(map);
 
         const countyLayer = L.layerGroup().addTo(map);
-        const cityLayer = L.layerGroup().addTo(map);
         const senateDistrictLayer = L.layerGroup();
         const houseDistrictLayer = L.layerGroup();
         const congressionalDistrictLayer = L.layerGroup();
 
-        let allCities = [];
-        let legislators = [];
+        // === ELECTED OFFICIALS DATA ===
+        const officialsData = [
+            { name: "Katie Hobbs", title: "Governor", party: "D", image: "data/images/katie-hobbs.jpg" },
+            { name: "Adrian Fontes", title: "Secretary of State", party: "D", image: "data/images/adrian-fontes.jpg" },
+            { name: "Kris Mayes", title: "Attorney General", party: "D", image: "data/images/kris-mayes.jpg" },
+            { name: "Kimberly Yee", title: "Treasurer", party: "R", image: "data/images/kimberly-yee.jpg" },
+            { name: "Tom Horne", title: "Supt. of Public Instruction", party: "R", image: "data/images/tom-horne.jpg" },
+            { name: "Les Presmyk", title: "Mine Inspector", party: "R", image: "data/images/les-presmyk.jpg" }
+        ];
 
-        // Current Arizona U.S. House Representatives (as of May 2026)
-        const congressionalReps = {
-            "1": { name: "David Schweikert", party: "R" },
-            "2": { name: "Eli Crane", party: "R" },
-            "3": { name: "Yassamin Ansari", party: "D" },
-            "4": { name: "Greg Stanton", party: "D" },
-            "5": { name: "Andy Biggs", party: "R" },
-            "6": { name: "Juan Ciscomani", party: "R" },
-            "7": { name: "Adelita Grijalva", party: "D" }
-            // Districts 8 & 9 can be added here as needed
-        };
+        // Render officials list
+        function renderOfficialList(filtered = officialsData) {
+            const container = document.getElementById('officialList');
+            container.innerHTML = '';
 
-        // COUNTIES (existing)
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-sm text-gray-500 px-2 py-4">No officials found matching your search.</div>`;
+                return;
+            }
+
+            filtered.forEach(official => {
+                const div = document.createElement('div');
+                div.className = `official-item ${official.party === 'D' ? 'hover:border-blue-300' : 'hover:border-red-300'}`;
+                
+                const partyColor = official.party === 'D' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700';
+                
+                div.innerHTML = `
+                    <img src="${official.image}" alt="${official.name}" class="official-photo" 
+                         onerror="this.src='https://via.placeholder.com/52x52/e5e7eb/6b7280?text=${official.name.split(' ').map(n => n[0]).join('')}'">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-semibold text-[15px] leading-tight">${official.name}</span>
+                            <span class="party-badge ${partyColor} flex-shrink-0">${official.party}</span>
+                        </div>
+                        <div class="text-sm text-gray-600 mt-0.5">${official.title}</div>
+                    </div>
+                `;
+
+                // Click to open Political Snapshot
+                div.onclick = () => {
+                    showPoliticalModal();
+                };
+
+                container.appendChild(div);
+            });
+        }
+
+        // Search
+        document.getElementById('officialSearch').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase().trim();
+            const filtered = officialsData.filter(o => 
+                o.name.toLowerCase().includes(term) || 
+                o.title.toLowerCase().includes(term)
+            );
+            renderOfficialList(filtered);
+        });
+
+        // Initial render
+        renderOfficialList();
+
+        // COUNTIES
         fetch('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json')
             .then(r => r.json())
             .then(data => {
                 const az = { type: "FeatureCollection", features: data.features.filter(f => f.properties.STATE === "04") };
                 L.geoJSON(az, {
-                    style: { color: "#3388ff", weight: 3, fillOpacity: 0.12 },
-                    onEachFeature: (f, layer) => {
-                        if (f.properties.NAME) {
-                            const area = Number(f.properties.CENSUSAREA || 0);
-                            layer.bindPopup(`<b>${f.properties.NAME} County</b><br>Area: ${Math.round(area).toLocaleString()} sq mi`);
-                        }
-                    }
+                    style: { color: "#3388ff", weight: 3, fillOpacity: 0.12 }
                 }).addTo(countyLayer);
             });
 
-        // === Legislative District Boundaries (Senate & House) ===
-        const SENATE_GEOJSON_URL = 'https://raw.githubusercontent.com/MKThai/arizona-boundaries-map/main/data/az_senate_districts.geojson';
-        const HOUSE_GEOJSON_URL = 'https://raw.githubusercontent.com/MKThai/arizona-boundaries-map/main/data/az_house_districts.geojson';
+        // District layers temporarily disabled to avoid 404 spam
+        // Uncomment when you add the GeoJSON files
 
-        fetch(SENATE_GEOJSON_URL)
-            .then(r => r.ok ? r.json() : Promise.reject('Senate GeoJSON not found'))
-            .then(data => {
-                L.geoJSON(data, {
-                    style: { color: '#7c3aed', weight: 2, fillOpacity: 0.08 },
-                    onEachFeature: (feature, layer) => {
-                        const dist = feature.properties.DISTRICT || feature.properties.district || 'N/A';
-                        layer.bindPopup(`
-                            <b>State Senate District ${dist}</b><br>
-                            <span class="text-xs">Upper Chamber • 1 Senator per district</span><br>
-                            <a href="#" onclick="showPoliticalModal(); document.querySelectorAll('.tab-btn')[1].click(); return false;" class="text-blue-600 text-xs">View current Senator →</a>
-                        `);
-                    }
-                }).addTo(senateDistrictLayer);
-            })
-            .catch(err => console.warn('Senate districts layer skipped:', err));
+        L.control.layers(null, {
+            "Counties": countyLayer,
+            "Senate Districts": senateDistrictLayer,
+            "House Districts": houseDistrictLayer,
+            "Congressional Districts": congressionalDistrictLayer
+        }, { collapsed: false, position: 'topright' }).addTo(map);
 
-        fetch(HOUSE_GEOJSON_URL)
-            .then(r => r.ok ? r.json() : Promise.reject('House GeoJSON not found'))
-            .then(data => {
-                L.geoJSON(data, {
-                    style: { color: '#0d9488', weight: 2, fillOpacity: 0.08 },
-                    onEachFeature: (feature, layer) => {
-                        const dist = feature.properties.DISTRICT || feature.properties.district || 'N/A';
-                        layer.bindPopup(`
-                            <b>House District ${dist}</b><br>
-                            <span class="text-xs">Lower Chamber • 2 Representatives per district</span><br>
-                            <a href="#" onclick="showPoliticalModal(); document.querySelectorAll('.tab-btn')[1].click(); return false;" class="text-blue-600 text-xs">View current Representatives →</a>
-                        `);
-                    }
-                }).addTo(houseDistrictLayer);
-            })
-            .catch(err => console.warn('House districts layer skipped:', err));
+        map.attributionControl.setPrefix('Arizona Boundaries Map • Leaflet');
 
-        // === NEW: U.S. Congressional Districts (Arizona - 9 districts) ===
-        // Data source: US Census TIGER/Line (tl_2025_04_cd119.zip or latest)
-        // Convert SHP to GeoJSON using mapshaper.org, then upload as az_congressional_districts.geojson
-        const CONGRESSIONAL_GEOJSON_URL = 'https://raw.githubusercontent.com/MKThai/arizona-boundaries-map/main/data/az_congressional_districts.geojson';
-
-        fetch(CONGRESSIONAL_GEOJSON_URL)
-            .then(r => r.ok ? r.json() : Promise.reject('Congressional GeoJSON not found'))
-            .then(data => {
-                L.geoJSON(data, {
-                    style: { color: '#f59e0b', weight: 2.5, fillOpacity: 0.1 },
-                    onEachFeature: (feature, layer) => {
-                        let dist = feature.properties.DISTRICT || feature.properties.district || feature.properties.CD118FP || 'N/A';
-                        dist = String(dist).replace(/^0+/, ''); // clean leading zeros
-                        
-                        const repInfo = congressionalReps[dist] || { name: 'TBD', party: '' };
-                        const partyColor = repInfo.party === 'D' ? 'text-blue-600' : 'text-red-600';
-                        
-                        layer.bindPopup(`
-                            <b>Congressional District ${dist}</b><br>
-                            <span class="font-medium">Rep. ${repInfo.name}</span> 
-                            <span class="${partyColor} font-semibold">(${repInfo.party})</span><br>
-                            <span class="text-xs text-gray-500">U.S. House of Representatives</span>
-                        `);
-                    }
-                }).addTo(congressionalDistrictLayer);
-                console.log('✅ Congressional district boundaries loaded');
-            })
-            .catch(err => {
-                console.warn('Congressional districts layer skipped (add the GeoJSON file):', err);
-            });
-
-        // CITIES from GeoNames (existing)
-        const cityListEl = document.getElementById('cityList');
-        cityListEl.innerHTML = '<div class="loading">Loading cities from GeoNames...</div>';
-
-        fetch(`https://api.geonames.org/searchJSON?country=US&adminCode1=AZ&featureClass=P&maxRows=1000&username=${CONFIG.geonamesUsername}`)
-            .then(r => r.json())
-            .then(data => {
-                if (data.geonames && data.geonames.length > 0) {
-                    allCities = data.geonames;
-                    data.geonames.forEach(p => {
-                        const m = L.circleMarker([p.lat, p.lng], CONFIG.cityMarker)
-                            .bindPopup(`<b>${p.name}</b><br>${p.adminName2 || 'AZ'} • Pop: <strong>${p.population ? p.population.toLocaleString() : 'N/A'}</strong>`);
-                        m.addTo(cityLayer);
-                    });
-                    renderCityList(allCities);
-                } else {
-                    throw new Error('No cities returned');
-                }
-            })
-            .catch(err => {
-                console.warn('GeoNames API failed, using fallback:', err);
-                const fb = [
-                    {name: "Phoenix", lat: 33.4484, lng: -112.0740, population: 4787790, adminName2: "Maricopa"},
-                    {name: "Tucson",  lat: 32.2226, lng: -110.9747, population: 550000,  adminName2: "Pima"}
-                ];
-                allCities = fb;
-                fb.forEach(c => {
-                    L.circleMarker([c.lat, c.lng], CONFIG.cityMarker)
-                        .bindPopup(`<b>${c.name}</b><br>${c.adminName2} • Pop: <strong>${c.population.toLocaleString()}</strong>`)
-                        .addTo(cityLayer);
-                });
-                renderCityList(allCities);
-            });
-
-        function createCityElement(p) {
-            const d = document.createElement('div');
-            d.className = 'city-item';
-            const pop = p.population ? p.population.toLocaleString() : 'N/A';
-            d.innerHTML = `
-                <div class="city-name">${p.name}</div>
-                <div class="city-meta">${p.adminName2 || 'AZ'} • <span class="city-pop">${pop}</span></div>
-            `;
-            d.onclick = () => {
-                map.flyTo([p.lat, p.lng], 11, { duration: 1.1 });
-                setTimeout(() => {
-                    L.popup()
-                        .setLatLng([p.lat, p.lng])
-                        .setContent(`<b>${p.name}</b><br>${p.adminName2 || 'AZ'} • ${pop}`)
-                        .openOn(map);
-                }, 700);
-            };
-            return d;
-        }
-
-        function renderCityList(cities) {
-            const c = document.getElementById('cityList');
-            c.innerHTML = '';
-            cities.forEach(p => c.appendChild(createCityElement(p)));
-        }
-
-        // Search
-        document.getElementById('citySearch').addEventListener('input', e => {
-            const term = e.target.value.toLowerCase();
-            const filtered = allCities.filter(p =>
-                p.name.toLowerCase().includes(term) ||
-                (p.adminName2 && p.adminName2.toLowerCase().includes(term))
-            );
-            const c = document.getElementById('cityList');
-            c.innerHTML = '';
-            filtered.forEach(p => c.appendChild(createCityElement(p)));
-        });
-
-        // === Legislators from Open States CSV (existing) ===
-        async function loadLegislators(forceRefresh = false) {
-            const loadingEl = document.getElementById('legislature-loading');
-            const contentEl = document.getElementById('legislature-content');
-            
-            if (legislators.length > 0 && !forceRefresh) {
-                renderLegislature();
-                return;
-            }
-
-            loadingEl.classList.remove('hidden');
-            contentEl.classList.add('hidden');
-
-            try {
-                const response = await fetch('https://data.openstates.org/people/current/az.csv');
-                if (!response.ok) throw new Error('Failed to fetch');
-                
-                const csvText = await response.text();
-                legislators = parseCSV(csvText);
-                
-                loadingEl.classList.add('hidden');
-                contentEl.classList.remove('hidden');
-                renderLegislature();
-            } catch (err) {
-                console.error('Open States fetch failed:', err);
-                loadingEl.innerHTML = '⚠️ Could not load live data. Using cached snapshot.';
-                contentEl.classList.remove('hidden');
-            }
-        }
-
-        function parseCSV(csvText) {
-            const lines = csvText.trim().split(/\r?\n/);
-            if (lines.length < 2) return [];
-            
-            const headers = lines[0].split(',').map(h => h.trim());
-            const rows = [];
-            
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                const values = [];
-                let current = '';
-                let inQuotes = false;
-                for (let char of lines[i]) {
-                    if (char === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
-                        values.push(current.trim());
-                        current = '';
-                    } else {
-                        current += char;
-                    }
-                }
-                values.push(current.trim());
-                
-                let obj = {};
-                headers.forEach((header, idx) => {
-                    obj[header] = (values[idx] || '').replace(/^"|"$/g, '');
-                });
-                rows.push(obj);
-            }
-            return rows;
-        }
-
-        function renderLegislature() {
-            if (!legislators.length) return;
-
-            const senators = legislators.filter(l => l.current_chamber === 'upper');
-            const reps = legislators.filter(l => l.current_chamber === 'lower');
-
-            const senateR = senators.filter(s => s.current_party === 'Republican').length;
-            const senateD = senators.length - senateR;
-            document.getElementById('senate-count').textContent = `(${senators.length})`;
-            document.getElementById('senate-party').innerHTML = `${senateR}R – ${senateD}D`;
-            document.getElementById('senate-bar').style.width = `${(senateR / senators.length * 100).toFixed(1)}%`;
-
-            const senateList = document.getElementById('senate-list');
-            senateList.innerHTML = senators
-                .sort((a, b) => parseInt(a.current_district) - parseInt(b.current_district))
-                .map(s => createLegislatorHTML(s))
-                .join('');
-
-            const houseR = reps.filter(r => r.current_party === 'Republican').length;
-            const houseD = reps.length - houseR;
-            document.getElementById('house-count').textContent = `(${reps.length})`;
-            document.getElementById('house-party').innerHTML = `${houseR}R – ${houseD}D`;
-            document.getElementById('house-bar').style.width = `${(houseR / reps.length * 100).toFixed(1)}%`;
-
-            const houseList = document.getElementById('house-list');
-            houseList.innerHTML = reps
-                .sort((a, b) => parseInt(a.current_district) - parseInt(b.current_district))
-                .map(r => createLegislatorHTML(r))
-                .join('');
-        }
-
-        function createLegislatorHTML(leg) {
-            const partyClass = leg.current_party === 'Democratic' 
-                ? 'bg-blue-100 text-blue-700' 
-                : 'bg-red-100 text-red-700';
-            const partyInitial = leg.current_party === 'Democratic' ? 'D' : 'R';
-            
-            return `
-                <div class="legislator-item flex items-center justify-between text-sm">
-                    <div class="flex items-center gap-2 min-w-0">
-                        <span class="font-medium truncate">${leg.name}</span>
-                        <span class="px-1.5 py-px text-[10px] font-semibold rounded ${partyClass}">${partyInitial}</span>
-                    </div>
-                    <div class="flex items-center gap-2 text-xs text-gray-500 flex-shrink-0">
-                        <span>District ${leg.current_district}</span>
-                        ${leg.image ? `<img src="${leg.image}" class="w-5 h-5 rounded-full object-cover border" onerror="this.style.display='none'">` : ''}
-                    </div>
-                </div>
-            `;
-        }
-
-        function refreshLegislators() {
-            legislators = [];
-            loadLegislators(true);
-        }
-
-        // Political Modal functions
-        let currentTab = 0;
+        // Modal functions
         function showPoliticalModal() {
             document.getElementById('politicalModal').classList.remove('hidden');
             document.getElementById('politicalModal').classList.add('flex');
@@ -585,26 +400,10 @@
                 el.classList.toggle('border-b-2', i === tab);
                 el.classList.toggle('border-blue-600', i === tab);
                 el.classList.toggle('text-blue-600', i === tab);
-                if (i !== tab) el.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600');
             });
-            
-            if (tab === 1) {
-                loadLegislators();
-            }
         }
 
-        // Layer control (now includes Congressional Districts)
-        L.control.layers(null, {
-            "Counties": countyLayer,
-            "Cities & Towns": cityLayer,
-            "Senate Districts": senateDistrictLayer,
-            "House Districts": houseDistrictLayer,
-            "Congressional Districts": congressionalDistrictLayer
-        }, { collapsed: false, position: 'topright' }).addTo(map);
-
-        map.attributionControl.setPrefix('Arizona Boundaries Map • Leaflet • Districts from AZ Redistricting / US Census TIGER');
-
-        console.log("✅ Arizona map with Congressional Districts + live reps ready!");
+        console.log("✅ Sidebar successfully pivoted to Elected Officials with photos");
     </script>
 </body>
 </html>
