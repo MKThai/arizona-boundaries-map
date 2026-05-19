@@ -127,21 +127,21 @@
                             
                             <div class="space-y-5">
                                 <div class="flex items-start gap-4">
-                                    <img src="data/images/katie-hobbs.jpg" alt="Governor Katie Hobbs" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm" onerror="this.src='https://via.placeholder.com/80x80/e5e7eb/6b7280?text=KH'">
+                                    <img src="data/images/katie-hobbs.jpg" alt="Governor Katie Hobbs" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm">
                                     <div class="min-w-0 pt-1">
                                         <div class="font-semibold text-lg leading-tight">Katie Hobbs</div>
                                         <div class="text-sm text-gray-600 mt-0.5">Governor</div>
                                     </div>
                                 </div>
                                 <div class="flex items-start gap-4">
-                                    <img src="data/images/adrian-fontes.jpg" alt="Secretary of State Adrian Fontes" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm" onerror="this.src='https://via.placeholder.com/80x80/e5e7eb/6b7280?text=AF'">
+                                    <img src="data/images/adrian-fontes.jpg" alt="Secretary of State Adrian Fontes" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm">
                                     <div class="min-w-0 pt-1">
                                         <div class="font-semibold text-lg leading-tight">Adrian Fontes</div>
                                         <div class="text-sm text-gray-600 mt-0.5">Secretary of State</div>
                                     </div>
                                 </div>
                                 <div class="flex items-start gap-4">
-                                    <img src="data/images/kris-mayes.jpg" alt="Attorney General Kris Mayes" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm" onerror="this.src='https://via.placeholder.com/80x80/e5e7eb/6b7280?text=KM'">
+                                    <img src="data/images/kris-mayes.jpg" alt="Attorney General Kris Mayes" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm">
                                     <div class="min-w-0 pt-1">
                                         <div class="font-semibold text-lg leading-tight">Kris Mayes</div>
                                         <div class="text-sm text-gray-600 mt-0.5">Attorney General</div>
@@ -159,21 +159,21 @@
                             
                             <div class="space-y-5">
                                 <div class="flex items-start gap-4">
-                                    <img src="data/images/kimberly-yee.jpg" alt="Treasurer Kimberly Yee" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm" onerror="this.src='https://via.placeholder.com/80x80/e5e7eb/6b7280?text=KY'">
+                                    <img src="data/images/kimberly-yee.jpg" alt="Treasurer Kimberly Yee" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm">
                                     <div class="min-w-0 pt-1">
                                         <div class="font-semibold text-lg leading-tight">Kimberly Yee</div>
                                         <div class="text-sm text-gray-600 mt-0.5">Treasurer</div>
                                     </div>
                                 </div>
                                 <div class="flex items-start gap-4">
-                                    <img src="data/images/tom-horne.jpg" alt="Superintendent Tom Horne" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm" onerror="this.src='https://via.placeholder.com/80x80/e5e7eb/6b7280?text=TH'">
+                                    <img src="data/images/tom-horne.jpg" alt="Superintendent Tom Horne" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm">
                                     <div class="min-w-0 pt-1">
                                         <div class="font-semibold text-lg leading-tight">Tom Horne</div>
                                         <div class="text-sm text-gray-600 mt-0.5">Supt. of Public Instruction</div>
                                     </div>
                                 </div>
                                 <div class="flex items-start gap-4">
-                                    <img src="data/images/les-presmyk.jpg" alt="Mine Inspector Les Presmyk" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm" onerror="this.src='https://via.placeholder.com/80x80/e5e7eb/6b7280?text=LP'">
+                                    <img src="data/images/les-presmyk.jpg" alt="Mine Inspector Les Presmyk" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 flex-shrink-0 shadow-sm">
                                     <div class="min-w-0 pt-1">
                                         <div class="font-semibold text-lg leading-tight">Les Presmyk</div>
                                         <div class="text-sm text-gray-600 mt-0.5">Mine Inspector</div>
@@ -328,8 +328,7 @@
                 const partyColor = official.party === 'D' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700';
                 
                 div.innerHTML = `
-                    <img src="${official.image}" alt="${official.name}" class="official-photo" 
-                         onerror="this.src='https://via.placeholder.com/52x52/e5e7eb/6b7280?text=${official.name.split(' ').map(n => n[0]).join('')}'">
+                    <img src="${official.image}" alt="${official.name}" class="official-photo">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2">
                             <span class="font-semibold text-[15px] leading-tight">${official.name}</span>
@@ -339,7 +338,6 @@
                     </div>
                 `;
 
-                // Click to open Political Snapshot
                 div.onclick = () => {
                     showPoliticalModal();
                 };
@@ -371,9 +369,6 @@
                 }).addTo(countyLayer);
             });
 
-        // District layers temporarily disabled to avoid 404 spam
-        // Uncomment when you add the GeoJSON files
-
         L.control.layers(null, {
             "Counties": countyLayer,
             "Senate Districts": senateDistrictLayer,
@@ -383,7 +378,6 @@
 
         map.attributionControl.setPrefix('Arizona Boundaries Map • Leaflet');
 
-        // Modal functions
         function showPoliticalModal() {
             document.getElementById('politicalModal').classList.remove('hidden');
             document.getElementById('politicalModal').classList.add('flex');
@@ -403,7 +397,7 @@
             });
         }
 
-        console.log("✅ Sidebar successfully pivoted to Elected Officials with photos");
+        console.log("✅ Placeholder images removed");
     </script>
 </body>
 </html>
