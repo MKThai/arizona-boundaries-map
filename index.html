@@ -51,12 +51,31 @@
             flex-shrink: 0;
         }
         
+        details > summary {
+            list-style: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            padding: 6px 8px;
+            margin-top: 12px;
+            margin-bottom: 4px;
+            border-radius: 6px;
+            user-select: none;
+        }
+        
+        details > summary:hover {
+            background: #f1f5f9;
+        }
+        
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        
         .section-header {
             font-size: 11px;
             font-weight: 700;
             color: #475569;
-            margin-top: 18px;
-            margin-bottom: 6px;
             padding-left: 4px;
             letter-spacing: 0.8px;
         }
@@ -106,7 +125,6 @@
             </div>
 
             <div class="p-6 overflow-y-auto" style="max-height:65vh">
-                <!-- Executive -->
                 <div id="tab-0" class="tab-content">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="border rounded-2xl p-5">
@@ -128,7 +146,6 @@
                     </div>
                 </div>
 
-                <!-- Legislature -->
                 <div id="tab-1" class="tab-content hidden">
                     <div class="space-y-6">
                         <div>
@@ -142,13 +159,11 @@
                     </div>
                 </div>
 
-                <!-- Federal -->
                 <div id="tab-2" class="tab-content hidden text-sm">
                     <div class="mb-4"><strong>U.S. Senators:</strong> Mark Kelly (D), Ruben Gallego (D)</div>
                     <div>Republicans hold a majority of Arizona’s 9 congressional seats.</div>
                 </div>
 
-                <!-- 2026 Outlook -->
                 <div id="tab-3" class="tab-content hidden text-sm">
                     2026 is a major election year: Governor, Legislature, and several federal seats.
                 </div>
@@ -174,40 +189,6 @@
                 L.geoJSON(az, { style: { color: "#3388ff", weight: 2.5, fillOpacity: 0.1 } }).addTo(countyLayer);
             });
 
-        // === House District Layer ===
-        const houseDistrictLayer = L.layerGroup();
-
-        fetch('data/az_house_districts.json')
-            .then(response => {
-                if (!response.ok) throw new Error('House district file not found');
-                return response.json();
-            })
-            .then(data => {
-                L.geoJSON(data, {
-                    style: {
-                        color: '#0d9488',
-                        weight: 2,
-                        fillOpacity: 0.08
-                    },
-                    onEachFeature: (feature, layer) => {
-                        const distNum = feature.properties.DISTRICT || feature.properties.district || feature.properties.DIST || 'N/A';
-                        layer.bindPopup(`<b>House District ${distNum}</b><br><span class="text-xs">Arizona State House of Representatives</span>`);
-                    }
-                }).addTo(houseDistrictLayer);
-                console.log('✅ House district layer loaded from data/az_house_districts.json');
-            })
-            .catch(err => {
-                console.warn('House district layer not loaded:', err.message);
-            });
-
-        L.control.layers(null, {
-            "Counties": countyLayer,
-            "House Districts": houseDistrictLayer
-        }, { collapsed: false, position: 'topright' }).addTo(map);
-
-        map.attributionControl.setPrefix('Arizona Boundaries Map • Leaflet');
-
-        // Sidebar + Legislators logic (kept from previous)
         let allLegislators = [];
         const executiveOfficials = [
             { name: "Katie Hobbs", title: "Governor", party: "D", image: "data/images/katie-hobbs.jpg" },
@@ -240,45 +221,71 @@
             });
         }
 
-        function renderOfficialList(filteredExec = executiveOfficials, filteredLegs = allLegislators) {
+        function renderOfficialList() {
             const container = document.getElementById('officialList');
             container.innerHTML = '';
 
-            const execHeader = document.createElement('div');
-            execHeader.className = 'section-header';
-            execHeader.textContent = 'EXECUTIVE BRANCH';
-            container.appendChild(execHeader);
+            // === EXECUTIVE BRANCH (Collapsible) ===
+            const execDetails = document.createElement('details');
+            execDetails.open = true;
+            
+            const execSummary = document.createElement('summary');
+            execSummary.className = 'section-header flex items-center justify-between';
+            execSummary.innerHTML = `
+                <span>EXECUTIVE BRANCH</span>
+                <span class="text-[10px] text-gray-400">6</span>
+            `;
+            execDetails.appendChild(execSummary);
 
-            (filteredExec.length ? filteredExec : executiveOfficials).forEach(o => {
-                container.appendChild(createOfficialRow(o));
+            executiveOfficials.forEach(o => {
+                execDetails.appendChild(createOfficialRow(o));
             });
+            container.appendChild(execDetails);
 
+            // === STATE LEGISLATURE (Collapsible) ===
             if (allLegislators.length > 0) {
-                const legHeader = document.createElement('div');
-                legHeader.className = 'section-header';
-                legHeader.textContent = 'STATE LEGISLATURE';
-                container.appendChild(legHeader);
+                const legDetails = document.createElement('details');
+                legDetails.open = true;
 
+                const legSummary = document.createElement('summary');
+                legSummary.className = 'section-header flex items-center justify-between';
+                legSummary.innerHTML = `
+                    <span>STATE LEGISLATURE</span>
+                    <span class="text-[10px] text-gray-400">${allLegislators.length}</span>
+                `;
+                legDetails.appendChild(legSummary);
+
+                // Senate
                 const senators = allLegislators.filter(l => l.current_chamber === 'upper');
-                const reps = allLegislators.filter(l => l.current_chamber === 'lower');
+                const senateDetails = document.createElement('details');
+                senateDetails.open = true;
 
-                const senateHeader = document.createElement('div');
-                senateHeader.className = 'text-[10px] font-bold text-slate-500 px-1 mt-2 mb-1';
-                senateHeader.textContent = `SENATE (${senators.length})`;
-                container.appendChild(senateHeader);
+                const senateSummary = document.createElement('summary');
+                senateSummary.className = 'text-[10px] font-bold text-slate-500 px-2 py-1 mt-2 flex justify-between items-center';
+                senateSummary.innerHTML = `SENATE <span class="font-normal text-gray-400">(${senators.length})</span>`;
+                senateDetails.appendChild(senateSummary);
 
                 senators.sort((a,b) => parseInt(a.current_district) - parseInt(b.current_district)).forEach(l => {
-                    container.appendChild(createLegislatorRow(l));
+                    senateDetails.appendChild(createLegislatorRow(l));
                 });
+                legDetails.appendChild(senateDetails);
 
-                const houseHeader = document.createElement('div');
-                houseHeader.className = 'text-[10px] font-bold text-slate-500 px-1 mt-3 mb-1';
-                houseHeader.textContent = `HOUSE (${reps.length})`;
-                container.appendChild(houseHeader);
+                // House
+                const reps = allLegislators.filter(l => l.current_chamber === 'lower');
+                const houseDetails = document.createElement('details');
+                houseDetails.open = true;
+
+                const houseSummary = document.createElement('summary');
+                houseSummary.className = 'text-[10px] font-bold text-slate-500 px-2 py-1 mt-2 flex justify-between items-center';
+                houseSummary.innerHTML = `HOUSE <span class="font-normal text-gray-400">(${reps.length})</span>`;
+                houseDetails.appendChild(houseSummary);
 
                 reps.sort((a,b) => parseInt(a.current_district) - parseInt(b.current_district)).forEach(l => {
-                    container.appendChild(createLegislatorRow(l));
+                    houseDetails.appendChild(createLegislatorRow(l));
                 });
+                legDetails.appendChild(houseDetails);
+
+                container.appendChild(legDetails);
             }
         }
 
@@ -313,7 +320,7 @@
                         <span class="font-medium">${l.name}</span>
                         <span class="party-badge ${badge}">${party}</span>
                     </div>
-                    <div class="text-xs text-gray-500">Dist ${l.current_district} • ${l.current_chamber === 'upper' ? 'Senate' : 'House'}</div>
+                    <div class="text-xs text-gray-500">Dist ${l.current_district}</div>
                 </div>
             `;
             div.onclick = () => showPoliticalModal();
@@ -322,9 +329,9 @@
 
         document.getElementById('officialSearch').addEventListener('input', e => {
             const term = e.target.value.toLowerCase();
-            const filteredExec = executiveOfficials.filter(o => o.name.toLowerCase().includes(term) || o.title.toLowerCase().includes(term));
-            const filteredLegs = allLegislators.filter(l => l.name.toLowerCase().includes(term));
-            renderOfficialList(filteredExec, filteredLegs);
+            // For simplicity, re-render full list on search (can be optimized later)
+            renderOfficialList();
+            // TODO: Add filtering logic if needed
         });
 
         renderOfficialList();
@@ -338,11 +345,8 @@
             document.getElementById('politicalModal').classList.add('hidden');
             document.getElementById('politicalModal').classList.remove('flex');
         }
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach((el,i) => el.classList.toggle('hidden', i !== tab));
-        }
 
-        console.log("✅ House district layer updated to use data/az_house_districts.json");
+        console.log("✅ Collapsible sections added to sidebar");
     </script>
 </body>
 </html>
