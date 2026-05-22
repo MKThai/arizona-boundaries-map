@@ -1,0 +1,22 @@
+<div class="snapshot-container">
+  <h2>📊 Data Management</h2>
+  <p class="description">Trigger the scraper to fetch the latest Arizona legislator data from Open States.</p>
+
+  <button class="scrape-btn" (click)="triggerScrape()" [disabled]="scraping()">
+    @if (scraping()) {
+      ⏳ Scraping...
+    } @else {
+      🔄 Run Scraper Now
+    }
+  </button>
+
+  @if (scrapeResult(); as result) {
+    <div class="result" [ngClass]="result.status === 'success' ? 'success' : 'error'">
+      <strong>{{ result.status === 'success' ? '✅' : '❌' }} {{ result.status | titlecase }}</strong>
+      <p>{{ result.message }}</p>
+      @if (result.recordCount > 0) {
+        <p class="count">{{ result.recordCount }} records processed</p>
+      }
+    </div>
+  }
+</div>
