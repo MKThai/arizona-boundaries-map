@@ -14,6 +14,8 @@ This is a full-stack monorepo with three layers:
 
 The cron scraper lives inside the `server/` project (same Express process) and runs daily at 3 AM. It can also be triggered via `POST /api/scraper/trigger`.
 
+> **Legacy**: The original static `index.html` (Leaflet map + Tailwind CSS) still exists in the repo root and can be served with `python3 -m http.server 8080` for quick reference, but the primary development workflow is the Angular + Express stack.
+
 ### Running locally
 
 1. **Start PostgreSQL**: `docker compose up -d` (from workspace root)
