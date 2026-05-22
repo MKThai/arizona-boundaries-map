@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Official {
+  id        Int      @id @default(autoincrement())
+  name      String
+  title     String
+  party     String
+  chamber   String?
+  district  String?
+  imageUrl  String?  @map("image_url")
+  branch    String   @default("executive")
+  state     String   @default("AZ")
+  source    String   @default("manual")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("officials")
+}
+
+model ScrapeLog {
+  id         Int      @id @default(autoincrement())
+  source     String
+  status     String
+  message    String?
+  recordCount Int?   @map("record_count")
+  startedAt  DateTime @default(now()) @map("started_at")
+  finishedAt DateTime? @map("finished_at")
+
+  @@map("scrape_logs")
+}

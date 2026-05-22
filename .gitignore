@@ -2,3 +2,10 @@
 Thumbs.db
 *.log
 node_modules/
+dist/
+
+# Server
+server/.env
+
+# Docker
+pgdata/
