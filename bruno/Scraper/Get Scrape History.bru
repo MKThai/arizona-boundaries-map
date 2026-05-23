@@ -1,0 +1,25 @@
+meta {
+  name: Get Scrape History
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/scraper/history
+  body: none
+  auth: none
+}
+
+docs {
+  Returns the 20 most recent scrape log entries, ordered by startedAt descending.
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.getBody()).to.be.an("array");
+  });
+}

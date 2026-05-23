@@ -1,0 +1,18 @@
+headers {
+  accept: application/json
+}
+
+docs {
+  # Arizona Boundaries API
+
+  REST endpoints for the Express server in `server/`.
+
+  ## Prerequisites
+  1. Start PostgreSQL: `docker compose up -d` (from repo root)
+  2. Start the API: `cd server && npm run dev` (default port 3000)
+  3. Select the **local** environment in Bruno
+
+  ## Notes
+  - No authentication is required for any endpoint.
+  - `POST /api/scraper/trigger` fetches live data from Open States and replaces scraped legislator records.
+}
