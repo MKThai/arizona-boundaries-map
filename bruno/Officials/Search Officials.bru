@@ -1,0 +1,30 @@
+meta {
+  name: Search Officials
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/officials/search
+  body: none
+  auth: none
+}
+
+params:query {
+  q: Hobbs
+}
+
+docs {
+  Case-insensitive search across name, title, and party.
+  Change the `q` query param to try different search terms.
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.getBody()).to.be.an("array");
+  });
+}
