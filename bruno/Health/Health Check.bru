@@ -1,0 +1,25 @@
+meta {
+  name: Health Check
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/health
+  body: none
+  auth: none
+}
+
+docs {
+  Liveness check. Returns service name and current timestamp.
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has ok status", function() {
+    expect(res.getBody().status).to.equal("ok");
+  });
+}

@@ -1,0 +1,30 @@
+meta {
+  name: Get Officials by Chamber
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/officials/chamber/:chamber
+  body: none
+  auth: none
+}
+
+params:path {
+  chamber: senate
+}
+
+docs {
+  Filter officials by legislative chamber.
+  Known values: `senate`, `house`.
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.getBody()).to.be.an("array");
+  });
+}

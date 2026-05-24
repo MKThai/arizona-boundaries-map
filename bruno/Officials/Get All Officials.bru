@@ -1,0 +1,25 @@
+meta {
+  name: Get All Officials
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/officials
+  body: none
+  auth: none
+}
+
+docs {
+  Returns all officials ordered by branch, then name.
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.getBody()).to.be.an("array");
+  });
+}
