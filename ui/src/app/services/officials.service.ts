@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Official {
   id: number;
@@ -24,7 +25,7 @@ export interface ScrapeResult {
 @Injectable({ providedIn: 'root' })
 export class OfficialsService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:3000/api';
+  private baseUrl = environment.apiUrl;
 
   getAll(): Observable<Official[]> {
     return this.http.get<Official[]>(`${this.baseUrl}/officials`);

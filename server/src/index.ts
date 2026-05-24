@@ -7,7 +7,15 @@ import { startCronJobs } from "./cron/scheduler.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+const corsOrigins =
+  process.env.CORS_ORIGINS?.split(",").map((origin) => origin.trim()).filter(Boolean) ??
+  ["http://localhost:4200"];
+
+app.use(
+  cors({
+    origin: corsOrigins,
+  }),
+);
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {

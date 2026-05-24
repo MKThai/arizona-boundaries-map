@@ -1,0 +1,23 @@
+# Render Blueprint — Arizona Boundaries API (Tier A)
+# Docs: https://render.com/docs/blueprint-spec
+#
+# After connecting this repo in Render, set DATABASE_URL (Neon) and CORS_ORIGINS
+# in the dashboard or via Environment Groups.
+
+services:
+  - type: web
+    name: arizona-boundaries-api
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: server
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:production
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
