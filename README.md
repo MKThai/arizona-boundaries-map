@@ -19,7 +19,7 @@ Built with **Leaflet.js** + Tailwind CSS.
 
 ## Full-stack deployment
 
-For the Angular + Express + Postgres stack, see **[docs/DEPLOY.md](docs/DEPLOY.md)** (Neon + Render + Cloudflare Pages).
+For the React + Express + Postgres stack, see **[docs/DEPLOY.md](docs/DEPLOY.md)** (Neon + Render + Cloudflare Pages).
 
 ## Quick Start (legacy static map)
 1. `git clone` the repo

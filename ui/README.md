@@ -1,59 +1,52 @@
-# Ui
+# Arizona Boundaries — React UI
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.12.
+This directory contains the **React + Vite** frontend for browsing Arizona officials and triggering the data scraper.
 
-## Development server
-
-To start a local development server, run:
+## Quick start
 
 ```bash
-ng serve
+npm install
+npm run dev
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Open [http://localhost:4200](http://localhost:4200). The API server must be running on port 3000 (`cd server && npm run dev`).
 
-## Code scaffolding
+## Project structure
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```
+src/
+├── main.tsx              # App entry point — mounts React into #root
+├── App.tsx               # Root component with route definitions
+├── config/environment.ts # API URL from Vite env vars
+├── types/official.ts     # TypeScript interfaces shared across components
+├── services/officialsApi.ts  # fetch() wrappers for the Express API
+└── components/
+    ├── Layout.tsx        # Navbar + <Outlet /> for child routes
+    ├── OfficialsList.tsx # Home page — tabs, search, official cards
+    └── PoliticalSnapshot.tsx  # Admin page — scraper trigger button
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Each file includes comments explaining the React concepts it uses. Start with `main.tsx` and follow the imports.
 
-```bash
-ng generate --help
-```
+## Scripts
 
-## Building
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Vite dev server (port 4200, hot reload) |
+| `npm run build` | Type-check + production bundle to `dist/` |
+| `npm run build:deploy` | Write prod env from `API_BASE_URL`, then build |
+| `npm run lint` | ESLint |
+| `npm run preview` | Serve the production build locally |
 
-To build the project run:
+## Environment variables
 
-```bash
-ng build
-```
+| Variable | Where set | Example |
+|----------|-----------|---------|
+| `VITE_API_URL` | `.env.development` (local) | `http://localhost:3000/api` |
+| `VITE_API_URL` | `.env.production` (generated at deploy) | `https://your-api.onrender.com/api` |
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Only variables prefixed with `VITE_` are exposed to browser code.
 
-## Running unit tests
+## Deployment
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+See [docs/DEPLOY.md](../docs/DEPLOY.md). Cloudflare Pages build output directory is `dist/`.
