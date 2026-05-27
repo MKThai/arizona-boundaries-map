@@ -16,6 +16,10 @@ The cron scraper lives inside the `server/` project (same Express process) and r
 
 > **Legacy**: The original static `index.html` (Leaflet map + Tailwind CSS) still exists in the repo root and can be served with `python3 -m http.server 8080` for quick reference, but the primary development workflow is the Angular + Express stack.
 
+### Cloud deployment (Tier A)
+
+Neon (Postgres) + Render (API) + Cloudflare Pages (UI). See [docs/DEPLOY.md](docs/DEPLOY.md).
+
 ### Running locally
 
 1. **Start PostgreSQL**: `docker compose up -d` (from workspace root)

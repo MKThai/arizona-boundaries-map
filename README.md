@@ -17,7 +17,11 @@ Built with **Leaflet.js** + Tailwind CSS.
 - 1000+ cities powered by GeoNames API
 - Toggleable layers (Counties, Cities, Tribal)
 
-## Quick Start
+## Full-stack deployment
+
+For the Angular + Express + Postgres stack, see **[docs/DEPLOY.md](docs/DEPLOY.md)** (Neon + Render + Cloudflare Pages).
+
+## Quick Start (legacy static map)
 1. `git clone` the repo
 2. Open `index.html`
 3. Click **Political Snapshot** (top right) for instant overview
