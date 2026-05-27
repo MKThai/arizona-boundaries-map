@@ -74,7 +74,7 @@ curl https://YOUR-SERVICE.onrender.com/api/officials
 | Framework preset | None |
 | Root directory | `ui` |
 | Build command | `npm ci && npm run build:deploy` |
-| Build output directory | `dist/ui/browser` |
+| Build output directory | `dist` |
 
 4. Environment variables (Production):
 
