@@ -1,13 +1,3 @@
-/**
- * Shared TypeScript types for data returned by the Express API.
- *
- * Keeping types in their own file (instead of inside the API module) makes them
- * easy to import from any component without circular dependencies.
- *
- * These shapes mirror the Prisma `Official` model on the server, minus timestamp
- * fields the UI doesn't display yet.
- */
-
 /** A single elected official (executive or legislator). */
 export interface Official {
   id: number;
@@ -28,6 +18,3 @@ export interface ScrapeResult {
   recordCount: number;
   message: string;
 }
-
-/** Which tab is active on the Officials page. */
-export type OfficialsTab = 'executive' | 'senate' | 'house';
