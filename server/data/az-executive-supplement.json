@@ -1,0 +1,35 @@
+[
+  {
+    "externalId": "manual:az:treasurer:kimberly-yee",
+    "name": "Kimberly Yee",
+    "givenName": "Kimberly",
+    "familyName": "Yee",
+    "roleType": "treasurer",
+    "title": "Treasurer",
+    "party": "Republican",
+    "imageUrl": "data/images/kimberly-yee.jpg",
+    "sourceUrl": "https://www.aztreasury.gov/"
+  },
+  {
+    "externalId": "manual:az:superintendent:tom-horne",
+    "name": "Tom Horne",
+    "givenName": "Tom",
+    "familyName": "Horne",
+    "roleType": "superintendent",
+    "title": "Supt. of Public Instruction",
+    "party": "Republican",
+    "imageUrl": "data/images/tom-horne.jpg",
+    "sourceUrl": "https://www.azed.gov/"
+  },
+  {
+    "externalId": "manual:az:mine-inspector:les-presmyk",
+    "name": "Les Presmyk",
+    "givenName": "Les",
+    "familyName": "Presmyk",
+    "roleType": "mine_inspector",
+    "title": "Mine Inspector",
+    "party": "Republican",
+    "imageUrl": "data/images/les-presmyk.jpg",
+    "sourceUrl": "https://mineinspector.az.gov/"
+  }
+]

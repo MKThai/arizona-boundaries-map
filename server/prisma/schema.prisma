@@ -8,30 +8,56 @@ datasource db {
 }
 
 model Official {
-  id        Int      @id @default(autoincrement())
-  name      String
-  title     String
-  party     String
-  chamber   String?
-  district  String?
-  imageUrl  String?  @map("image_url")
-  branch    String   @default("executive")
-  state     String   @default("AZ")
-  source    String   @default("manual")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id               Int       @id @default(autoincrement())
+  externalId       String?   @map("external_id")
+  name             String
+  givenName        String?   @map("given_name")
+  familyName       String?   @map("family_name")
+  level            String    @default("state")
+  govBranch        String    @default("executive") @map("gov_branch")
+  roleType         String    @default("official") @map("role_type")
+  title            String
+  party            String?
+  chamber          String?
+  district         String?
+  jurisdictionOcd  String?   @map("jurisdiction_ocd")
+  jurisdictionName String?   @map("jurisdiction_name")
+  state            String    @default("AZ")
+  imageUrl         String?   @map("image_url")
+  termStart        DateTime? @map("term_start")
+  termEnd          DateTime? @map("term_end")
+  isAppointed      Boolean   @default(false) @map("is_appointed")
+  source           String    @default("manual")
+  sourceUrl        String?   @map("source_url")
+  rawPayload       Json?     @map("raw_payload")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  contacts         Contact[]
 
+  @@unique([externalId, source])
+  @@index([state, level, govBranch])
   @@map("officials")
 }
 
-model ScrapeLog {
+model Contact {
   id         Int      @id @default(autoincrement())
-  source     String
-  status     String
-  message    String?
-  recordCount Int?   @map("record_count")
-  startedAt  DateTime @default(now()) @map("started_at")
-  finishedAt DateTime? @map("finished_at")
+  officialId Int      @map("official_id")
+  type       String
+  value      String
+  label      String?
+  official   Official @relation(fields: [officialId], references: [id], onDelete: Cascade)
+
+  @@map("official_contacts")
+}
+
+model ScrapeLog {
+  id          Int       @id @default(autoincrement())
+  source      String
+  status      String
+  message     String?
+  recordCount Int?      @map("record_count")
+  startedAt   DateTime  @default(now()) @map("started_at")
+  finishedAt  DateTime? @map("finished_at")
 
   @@map("scrape_logs")
 }

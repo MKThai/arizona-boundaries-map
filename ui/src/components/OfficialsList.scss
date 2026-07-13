@@ -1,5 +1,5 @@
 .officials-container {
-  max-width: 600px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 24px;
 }
@@ -68,6 +68,17 @@
     font-weight: 600;
     color: #059669;
   }
+
+  .source-results {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    font-size: 0.82rem;
+    color: #374151;
+
+    li {
+      margin-bottom: 4px;
+    }
+  }
 }
 
 .search-input {
@@ -90,6 +101,48 @@
   text-align: center;
   color: #6b7280;
   padding: 20px;
+}
+
+.officials-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: start;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.officials-column {
+  min-width: 0;
+}
+
+.column-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.column-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.column-empty {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  padding: 16px;
 }
 
 .officials-list {

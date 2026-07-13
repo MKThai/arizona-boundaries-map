@@ -1,28 +1,49 @@
 import { useEffect, useState } from 'react';
 import {
-  getAllOfficials,
+  getGroupedOfficials,
   getPartyClass,
   getPartyLabel,
   searchOfficials,
   triggerScrape,
 } from '../services/officialsApi';
-import type { Official, ScrapeResult } from '../types/official';
+import type { Official, OfficialGroup, ScrapeResult } from '../types/official';
 import './OfficialsList.scss';
 
+function OfficialCard({ official }: { official: Official | OfficialGroup['officials'][number] }) {
+  return (
+    <div className="official-card">
+      <div className="official-info">
+        <span className="official-name">{official.name}</span>
+        <span className={`badge ${getPartyClass(official.party)}`}>
+          {getPartyLabel(official.party)}
+        </span>
+      </div>
+      <div className="official-detail">
+        {official.title}
+        {'jurisdictionName' in official && official.jurisdictionName && (
+          <span className="district"> · {official.jurisdictionName}</span>
+        )}
+        {official.district && <span className="district"> · Dist {official.district}</span>}
+      </div>
+    </div>
+  );
+}
+
 export default function OfficialsList() {
-  const [officials, setOfficials] = useState<Official[]>([]);
+  const [groups, setGroups] = useState<OfficialGroup[]>([]);
+  const [searchResults, setSearchResults] = useState<Official[] | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [scraping, setScraping] = useState(false);
   const [scrapeResult, setScrapeResult] = useState<ScrapeResult | null>(null);
 
-  const loadOfficials = async () => {
+  const loadGroups = async () => {
     setLoading(true);
     try {
-      const data = await getAllOfficials();
-      setOfficials(data);
+      const data = await getGroupedOfficials();
+      setGroups(data);
     } catch {
-      setOfficials([]);
+      setGroups([]);
     } finally {
       setLoading(false);
     }
@@ -31,16 +52,16 @@ export default function OfficialsList() {
   useEffect(() => {
     let cancelled = false;
 
-    getAllOfficials()
+    getGroupedOfficials()
       .then((data) => {
         if (!cancelled) {
-          setOfficials(data);
+          setGroups(data);
           setLoading(false);
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setOfficials([]);
+          setGroups([]);
           setLoading(false);
         }
       });
@@ -57,14 +78,15 @@ export default function OfficialsList() {
       setLoading(true);
       try {
         const data = await searchOfficials(query);
-        setOfficials(data);
+        setSearchResults(data);
       } catch {
-        setOfficials([]);
+        setSearchResults([]);
       } finally {
         setLoading(false);
       }
     } else if (query.length === 0) {
-      await loadOfficials();
+      setSearchResults(null);
+      await loadGroups();
     }
   }
 
@@ -75,14 +97,16 @@ export default function OfficialsList() {
     try {
       const result = await triggerScrape();
       setScrapeResult(result);
-      if (result.status === 'success') {
+      if (result.status === 'success' || result.status === 'partial') {
         setSearchQuery('');
-        await loadOfficials();
+        setSearchResults(null);
+        await loadGroups();
       }
     } catch {
       setScrapeResult({
         status: 'error',
         recordCount: 0,
+        totalRecords: 0,
         message: 'Request failed. Is the API server running?',
       });
     } finally {
@@ -90,13 +114,17 @@ export default function OfficialsList() {
     }
   }
 
+  const totalCount =
+    searchResults?.length ??
+    groups.reduce((sum, group) => sum + group.officials.length, 0);
+
   return (
     <div className="officials-container">
       <h1 className="title">🗳️ Arizona Officials</h1>
 
       <section className="scraper-section">
         <p className="description">
-          Fetch the latest legislator data from Open States and save it to the database.
+          Sync federal, state executive, state legislature, and mayor data from open sources.
         </p>
         <button
           type="button"
@@ -104,17 +132,33 @@ export default function OfficialsList() {
           onClick={() => void handleTriggerScrape()}
           disabled={scraping}
         >
-          {scraping ? '⏳ Scraping...' : '🔄 Run Scraper Now'}
+          {scraping ? '⏳ Syncing...' : '🔄 Sync All Sources'}
         </button>
         {scrapeResult && (
-          <div className={`result ${scrapeResult.status === 'success' ? 'success' : 'error'}`}>
+          <div
+            className={`result ${
+              scrapeResult.status === 'success' || scrapeResult.status === 'partial'
+                ? 'success'
+                : 'error'
+            }`}
+          >
             <strong>
-              {scrapeResult.status === 'success' ? '✅' : '❌'}{' '}
+              {scrapeResult.status === 'error' ? '❌' : '✅'}{' '}
               {scrapeResult.status.charAt(0).toUpperCase() + scrapeResult.status.slice(1)}
             </strong>
             <p>{scrapeResult.message}</p>
             {scrapeResult.recordCount > 0 && (
               <p className="count">{scrapeResult.recordCount} records processed</p>
+            )}
+            {scrapeResult.sources && scrapeResult.sources.length > 0 && (
+              <ul className="source-results">
+                {scrapeResult.sources.map((source) => (
+                  <li key={source.source}>
+                    {source.status === 'success' ? '✓' : '✗'} {source.source}:{' '}
+                    {source.recordCount} — {source.message}
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         )}
@@ -123,34 +167,43 @@ export default function OfficialsList() {
       <input
         type="text"
         className="search-input"
-        placeholder="Search name, title, or party..."
+        placeholder="Search name, title, party, or city..."
         value={searchQuery}
         onChange={(event) => void handleSearch(event.target.value)}
       />
 
       {loading && <div className="loading">Loading...</div>}
 
-      <div className="officials-list">
-        {officials.map((official) => (
-          <div key={official.id} className="official-card">
-            <div className="official-info">
-              <span className="official-name">{official.name}</span>
-              <span className={`badge ${getPartyClass(official.party)}`}>
-                {getPartyLabel(official.party)}
-              </span>
-            </div>
-            <div className="official-detail">
-              {official.title}
-              {official.district && (
-                <span className="district"> · Dist {official.district}</span>
-              )}
-            </div>
+      {!loading && totalCount === 0 ? (
+        <div className="empty">No officials in the database. Run sync to populate data.</div>
+      ) : searchResults ? (
+        <section className="officials-column search-results">
+          <h2 className="column-title">
+            Search Results
+            <span className="column-count">{searchResults.length}</span>
+          </h2>
+          <div className="officials-list">
+            {searchResults.map((official) => (
+              <OfficialCard key={official.id} official={official} />
+            ))}
           </div>
-        ))}
-      </div>
-
-      {!loading && officials.length === 0 && (
-        <div className="empty">No officials in the database. Run the scraper to populate data.</div>
+        </section>
+      ) : (
+        <div className="officials-columns">
+          {groups.map((group) => (
+            <section key={group.key} className="officials-column">
+              <h2 className="column-title">
+                {group.label}
+                <span className="column-count">{group.officials.length}</span>
+              </h2>
+              <div className="officials-list">
+                {group.officials.map((official) => (
+                  <OfficialCard key={official.id} official={official} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
       )}
     </div>
   );

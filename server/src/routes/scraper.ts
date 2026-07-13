@@ -1,18 +1,29 @@
 import { Router } from "express";
 import {
-  scrapeArizonaLegislators,
   getScrapeHistory,
+  listDataSources,
+  scrapeStateOfficials,
 } from "../services/scraper.service.js";
 
 const router = Router();
 
-router.post("/trigger", async (_req, res) => {
+router.post("/trigger", async (req, res) => {
   try {
-    console.log("[Scraper] Manual trigger via REST");
-    const result = await scrapeArizonaLegislators();
+    const state = typeof req.body?.state === "string" ? req.body.state : "AZ";
+    console.log(`[Scraper] Manual trigger via REST for ${state.toUpperCase()}`);
+    const result = await scrapeStateOfficials(state);
     res.json(result);
   } catch (_error) {
     res.status(500).json({ error: "Scrape failed" });
+  }
+});
+
+router.get("/sources", async (_req, res) => {
+  try {
+    const sources = await listDataSources();
+    res.json(sources);
+  } catch (_error) {
+    res.status(500).json({ error: "Failed to list data sources" });
   }
 });
 

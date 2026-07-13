@@ -45,4 +45,5 @@ Neon (Postgres) + Render (API) + Cloudflare Pages (UI). See [docs/DEPLOY.md](doc
 - The `.env` file in `server/` contains the local database URL: `postgresql://azuser:azpass@localhost:5432/arizona_boundaries`
 - The Express server uses `tsx watch` for hot-reload in dev mode.
 - After pulling changes, if Prisma schema changed, run `npm run db:migrate` in `server/` to sync the DB.
-- The cron job (Open States scrape) replaces all `source: "openstates"` records on each run; executive officials (`source: "manual"`) are preserved.
+- The cron job syncs officials from multiple open sources (Congress YAML, Open States CSV/YAML). Each source replaces only its own rows (`source` field) on each run.
+- Data source catalog: [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).

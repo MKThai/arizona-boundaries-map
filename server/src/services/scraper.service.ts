@@ -1,91 +1,96 @@
 import prisma from "../db/index.js";
+import { STATE_OFFICIAL_ADAPTERS } from "../adapters/index.js";
+import { replaceOfficialsForSource } from "./officials-persist.service.js";
+import type {
+  ScrapeRunResult,
+  SourceScrapeResult,
+} from "../types/canonical-official.js";
 
-interface LegislatorRecord {
-  name: string;
-  current_party: string;
-  current_chamber: string;
-  current_district: string;
-  image: string;
-}
+export async function scrapeStateOfficials(state = "AZ"): Promise<ScrapeRunResult> {
+  const stateCode = state.toUpperCase();
+  const sourceResults: SourceScrapeResult[] = [];
+  let totalRecords = 0;
 
-function parseCSV(csvText: string): LegislatorRecord[] {
-  const lines = csvText.trim().split(/\r?\n/);
-  const headers = lines[0].split(",");
-  return lines.slice(1).map((line) => {
-    const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-    const obj: Record<string, string> = {};
-    headers.forEach((h, i) => {
-      obj[h.trim()] = (values[i] || "").replace(/"/g, "").trim();
-    });
-    return obj as unknown as LegislatorRecord;
-  });
-}
-
-export async function scrapeArizonaLegislators(): Promise<{
-  status: string;
-  recordCount: number;
-  message: string;
-}> {
-  const log = await prisma.scrapeLog.create({
-    data: { source: "openstates_az", status: "running" },
-  });
-
-  try {
-    const response = await fetch(
-      "https://data.openstates.org/people/current/az.csv"
-    );
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const csvText = await response.text();
-    const legislators = parseCSV(csvText);
-
-    await prisma.official.deleteMany({
-      where: { source: "openstates" },
+  for (const adapter of STATE_OFFICIAL_ADAPTERS) {
+    const log = await prisma.scrapeLog.create({
+      data: { source: adapter.source, status: "running" },
     });
 
-    const records = legislators.map((leg) => {
-      const chamber = leg.current_chamber === "upper" ? "senate" : "house";
-      return {
-        name: leg.name,
-        title: chamber === "senate" ? "Senator" : "Representative",
-        party: leg.current_party || "Unknown",
-        chamber,
-        district: leg.current_district,
-        branch: "legislative",
-        imageUrl: leg.image || null,
-        state: "AZ",
-        source: "openstates",
-      };
-    });
+    try {
+      const records = await adapter.fetch(stateCode);
+      const recordCount = await replaceOfficialsForSource(
+        stateCode,
+        adapter.source,
+        records,
+      );
 
-    await prisma.official.createMany({ data: records });
-    const upsertCount = records.length;
+      totalRecords += recordCount;
+      const message = `Scraped ${recordCount} officials from ${adapter.source}`;
 
-    await prisma.scrapeLog.update({
-      where: { id: log.id },
-      data: {
+      await prisma.scrapeLog.update({
+        where: { id: log.id },
+        data: {
+          status: "success",
+          recordCount,
+          message,
+          finishedAt: new Date(),
+        },
+      });
+
+      sourceResults.push({
+        source: adapter.source,
         status: "success",
-        recordCount: upsertCount,
-        message: `Scraped ${upsertCount} legislators from Open States`,
-        finishedAt: new Date(),
-      },
-    });
+        recordCount,
+        message,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
 
-    return {
-      status: "success",
-      recordCount: upsertCount,
-      message: `Scraped ${upsertCount} legislators`,
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    await prisma.scrapeLog.update({
-      where: { id: log.id },
-      data: { status: "error", message, finishedAt: new Date() },
-    });
-    return { status: "error", recordCount: 0, message };
+      await prisma.scrapeLog.update({
+        where: { id: log.id },
+        data: {
+          status: "error",
+          message,
+          finishedAt: new Date(),
+        },
+      });
+
+      sourceResults.push({
+        source: adapter.source,
+        status: "error",
+        recordCount: 0,
+        message,
+      });
+    }
   }
+
+  const failures = sourceResults.filter((result) => result.status === "error");
+  const successes = sourceResults.filter((result) => result.status === "success");
+
+  let status: ScrapeRunResult["status"] = "success";
+  if (failures.length === sourceResults.length) {
+    status = "error";
+  } else if (failures.length > 0) {
+    status = "partial";
+  }
+
+  const message =
+    failures.length === 0
+      ? `Scraped ${totalRecords} officials across ${successes.length} sources for ${stateCode}`
+      : `${successes.length}/${sourceResults.length} sources succeeded (${totalRecords} records) for ${stateCode}`;
+
+  return {
+    status,
+    totalRecords,
+    recordCount: totalRecords,
+    message,
+    sources: sourceResults,
+  };
+}
+
+/** @deprecated Use scrapeStateOfficials instead. */
+export async function scrapeArizonaLegislators(): Promise<ScrapeRunResult> {
+  return scrapeStateOfficials("AZ");
 }
 
 export async function getScrapeHistory(limit = 20) {
@@ -93,4 +98,11 @@ export async function getScrapeHistory(limit = 20) {
     orderBy: { startedAt: "desc" },
     take: limit,
   });
+}
+
+export async function listDataSources() {
+  return STATE_OFFICIAL_ADAPTERS.map((adapter) => ({
+    source: adapter.source,
+    description: adapter.description,
+  }));
 }

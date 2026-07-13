@@ -19,9 +19,9 @@ body:json {
 }
 
 docs {
-  Manually triggers the Open States Arizona legislator scrape.
-  Deletes existing openstates-sourced officials and inserts fresh legislative data.
-  Does not affect manually seeded executive officials.
+  Manually triggers the multi-source Arizona officials scrape.
+  Fetches Congress YAML, Open States CSV/YAML, and local executive supplement.
+  Each source replaces only its own rows in the database.
 }
 
 tests {
